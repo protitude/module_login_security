@@ -1,0 +1,262 @@
+<?php 
+/* $Id$ */
+/* GPL published.. if you don't have a copy of the license, search for it, it's free */
+/* Copyrigthed by ilo@reversing.org */
+
+define('LOGIN_SECURITY_TRACK_TIME', 0);
+define('LOGIN_SECURITY_BASE_TIME', 0);
+define('LOGIN_SECURITY_USER_WRONG_COUNT', 0);
+define('LOGIN_SECURITY_HOST_WRONG_COUNT', 0);
+define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
+
+/**
+ * @file Login Security
+ */ 
+ 
+ /**
+ * Implementation of hook_help()
+ */
+function login_security_help($section) {
+  switch ($section) {
+    case 'admin/modules#description':
+      // This description is shown in the listing at admin/modules.
+      return t('Attachs security options to the login flow of the site.');
+  }
+}
+
+ /**
+ * Implementation of hook_cron()
+ */
+function login_security_cron(){
+// calc expiring time of login security tracked entries
+	$time = time() - ( variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME) * 3600);
+  db_query("DELETE FROM {login_security_track} WHERE timestamp < '%d'", $time);	
+	return;
+}
+
+/**
+ * Implementation of hook_user().
+ */
+function login_security_user($op, &$edit, &$account, $category = NULL) {
+  global $user;
+  switch ($op) {
+    case 'login': case 'update': case 'delete':
+//  On success login remove any temporal protection for the IP address and the username
+    db_query("DELETE FROM {login_security_track} WHERE name = '%s' and host = '%s'", check_plain($edit['name']), mip_address());
+    break;
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function login_security_form_alter($form_id, &$form) {  
+	switch ($form_id){
+		 case 'user_login':
+		 case 'user_login_block':
+//     Attach a new validatdor for the name field
+	     $form['name']['#validate']['login_security_validate'] = array();
+       break;
+     case 'user_admin_settings':
+		   if (user_access('administer users')){
+         $form['login_security'] = array(
+           '#type' => 'fieldset',
+           '#title' => t('Security settings'),
+           '#weight' => 0,
+           '#collapsible' => FALSE,
+         );
+  	     $form['login_security'][] = login_security_build_admin_form();
+  	    }
+  	  break;
+  }
+}
+
+ /**
+ * Build a form body for the configuration settings.
+ */
+function login_security_build_admin_form(){
+  $form = array();
+  $form['login_security_track_time'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Track time'),
+    '#default_value' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('Enter the time in hours each login attempt is kept for future computing.'),
+    '#field_suffix' => '<kbd>'. t('Hours') .'</kbd>'
+  );
+  $form['login_security_delay_base_time'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Login delay base time'),
+    '#default_value' => variable_get('login_security_delay_base_time', LOGIN_SECURITY_BASE_TIME),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('Enter the base time for login delay, computed as (base time) x (login attempts) for that user.'),
+    '#field_suffix' => '<kbd>'. t('Seconds') .'</kbd>'
+  );
+  $form['login_security_user_wrong_count'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximun count of login fails before blocking a user'),
+    '#default_value' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('Enter number of login fails a user is allowed to enter, after that ammount, the user will be blocked, no matter the host attempting to login. Use this option carefully as in a public site, an attacker may block your site users.'),
+    '#field_suffix' => '<kbd>'. t('Attempts') .'</kbd>'
+  );
+  $form['login_security_host_wrong_count'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximun total of login fails before soft blocking a host'),
+    '#default_value' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_HOST_WRONG_COUNT),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('Enter number of login fails a host is allowed to enter. After that ammount, the host will not be able to login, but can still browse the site contents.'),
+    '#field_suffix' => '<kbd>'. t('Attempts') .'</kbd>'
+  );
+  $form['login_security_host_wrong_count_hard'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximun total of login fails before blocking a host'),
+    '#default_value' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('Enter number of login fails a host is allowed to enter. After that ammount, the host will be blocked, no matter the username attempting to login.'),
+    '#field_suffix' => '<kbd>'. t('Attempts') .'</kbd>'
+  );
+	return $form;
+}
+
+
+
+/**
+ * Implementation of form validate. This functions does more than just validating, but it's main
+ * Intention is to break the login form flow.
+ *
+ * @param $form_item
+ *   The status of the name field in the form field after being submitted by the user.
+ *
+ */
+function login_security_validate($form_item) {
+   $name = check_plain($form_item['#value']);
+// Null username should not be tracked   
+   if (!strlen($name)) return;
+
+// Save entry in security log, Username and IP Address
+   login_security_save_pair($name, mip_address());   
+
+// Start with login Delay
+   if ($delay = variable_get('login_security_delay_base_time', LOGIN_SECURITY_USER_BASE_TIME)){
+   	 $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s' and host = '%s'", $name, mip_address()));
+   	 $secs = intval($count-1) * intval($delay);
+     if ($secs >= ini_get('max_execution_time')){
+     	 $secs = ini_get('max_execution_time') - 3;
+     }
+   	 @sleep($secs);
+   }
+
+// Check for host login attempts: Hard
+   if ($lcount = variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_USER_WRONG_COUNT_HARD)){
+   	 $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", mip_address()));
+     if ($count > $lcount){
+//      block the host mip_address()
+				login_user_block_ip();     	
+     }
+   }
+
+// Check for host login attempts: Soft
+   if ($lcount = variable_get('login_security_host_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT)){
+   	 $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", mip_address()));
+     if ($count > $lcount){
+				form_set_error('submit',t('This host is not allowed to login the site. Please contact your site administrator'));
+				drupal_goto(drupal_get_destination()); 
+     }
+   }
+
+// Check for user login attempts
+   if ($ucount = variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT)){
+   	 $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s'", $name));
+     if ($count > $ucount){
+//      Block the account $name
+     	  login_user_block_user_name($name);
+     }
+   }
+}
+
+/**
+ * Save the login attempt in the tracking database: user name and ip address.
+ *
+ * @param $name
+ *   user name to be tracked.
+ *
+ * @param $ip
+ *   IP Address of the pair.
+ */
+function login_security_save_pair($name, $ip){
+// Each fail attempt is kept for future minning of advanced bruteforcing 
+// like multiple IP or X-Forwarded-for usage and automated track data cleanup
+   db_query("INSERT INTO {login_security_track} (name, host, timestamp) VALUES ('%s', '%s', %d)", $name, $ip, time());	
+}
+
+/**
+ * Create a Deny entry for the IP address. If IP address is not especified then block current IP.
+ *
+ * @param $ip
+ *   Optional. Add a deny rule in the access control to this IP Address.
+ */
+function login_user_block_ip($ip = NULL ) {
+	if (!$ip){
+		$ip = mip_address();
+	}
+  db_query("INSERT INTO {access} (mask, type, status) VALUES ('%s', '%s', %d)", $ip, 'host', 0);
+  watchdog('security', t('Banned IP address %ip because of login security configuration', array('%ip' => $ip)));
+}
+
+/**
+ * Block a user by UID. If no user id then block current user.
+ *
+ * @param $uid
+ *   Optional. The unique uid identifying the user.
+ */
+function login_user_block_user_id($uid = NULL) {
+  if (!$uid) {
+    global $user;
+    $uid = $user->uid;
+  }    
+  if ($uid ==1) return;
+  db_query("UPDATE {users} SET status = 0 WHERE uid = %d", $uid);
+  sess_destroy_uid($uid);
+  watchdog('security', t('Blocked user id %id due to security configuration', array('%id' => $uid)));
+}
+
+/**
+ * Block a user by user name. If no user id then block current user.
+ *
+ * @param $name
+ *   Optional. The unique string identifying the user.
+ *
+ */
+function login_user_block_user_name($name = NULL) {
+  if (!$name) {
+    global $user;
+    $name = $user->name;
+  }    
+  $uid = db_result(db_query("SELECT uid FROM {users} WHERE uid != 1 and name = '%s'", $name));
+  if ($uid){
+  	login_user_block_user_id($uid);
+  }
+}
+
+/**
+ * Helper function to get the IP Address viewing the page.
+ */
+function mip_address() {
+  static $ip_address = NULL;
+
+  if (!isset($ip_address)) {
+    $ip_address = $_SERVER['REMOTE_ADDR'];
+    if (variable_get('reverse_proxy', 0) && array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER)) {
+      // If there are several arguments, we need to check the most
+      // recently added one, ie the last one.
+      $ip_address = array_pop(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']));
+    }
+  }
+  return check_plain($ip_address);
+}

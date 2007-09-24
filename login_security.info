@@ -1,0 +1,3 @@
+; $Id$
+name = Login Security
+description = Enable security options in the login flow of the site.
