@@ -3,11 +3,41 @@
 /* GPL published.. if you don't have a copy of the license, search for it, it's free */
 /* Copyrigthed by ilo@reversing.org */
 
+
+/*
+
+ - Añadir los intentos de logs al mail del admin antes de borrar y blockear, aunque están en 
+ accesslog..
+  
+ - Permitir edicion de mensajes de sitio:
+   - se permiten N intentos de acceso desde esta IP, después de X intentos se bloqueará el acceso.
+   - la ip esta bloqueada por un tiempo. mostrar (your IP has been blocked for X hours.<-timewindow)
+   - la ip ha sido bloqueada y no se permite acceso a la web desde esa IP. 
+   - el usuario ha sido bloqueado. ..
+
+ - Permitir edición de mesajes de mail
+   - el usuario ha sido bloqueado (admin version).
+   - la dirección IP ha sido bloqueada (soft).
+   - la dirección IP ha sido bloqueada (hard).
+   
+ - Configurar notificaciones:
+   - notificar usuario bloqueado al admin.
+   - notificar IP bloqueada al admin.
+
+*/
+
+
 define('LOGIN_SECURITY_TRACK_TIME', 0);
 define('LOGIN_SECURITY_BASE_TIME', 0);
 define('LOGIN_SECURITY_USER_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
+define('LOGIN_SECURITY_HOST_SOFT_BANNED',"This host is not allowed to login the site. Please contact your site administrator");
+define('LOGIN_SECURITY_HOST_HARD_BANNED',"The IP address %ip is banned in this site, and will not be able to access any of it's content from now on. Please contact the site administrator.");
+define('LOGIN_SECURITY_USER_BLOCKED',"The user %username has been blocked due to failed login attempts");
+define('LOGIN_SECURITY_USER_BLOCKED_EMAIL', FALSE);
+define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT',"Security action: The user %username has been blocked");
+define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY',"The user %username has been blocked in the site due to the ammount of failed login attempts. Please check the logs of the site to get more information");
 
 /**
  * @file Login Security
@@ -115,12 +145,59 @@ function login_security_build_admin_form(){
   $form['login_security_host_wrong_count_hard'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximun total of login fails before blocking a host'),
-    '#default_value' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT),
+    '#default_value' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter number of login fails a host is allowed to enter. After that ammount, the host will be blocked, no matter the username attempting to login.'),
     '#field_suffix' => '<kbd>'. t('Attempts') .'</kbd>'
   );
+  $form['login_security']['Notifications'] = array(
+           '#type' => 'fieldset',
+           '#title' => t('Edit notifications'),
+           '#weight' => 0,
+           '#collapsible' => TRUE,
+           '#collapsed' => TRUE,
+  );
+  $form['login_security']['Notifications']['login_security_host_soft_banned'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Message for banned host (Soft IP ban)'),
+    '#rows' => 2,
+    '#default_value' => variable_get('login_security_host_soft_banned', LOGIN_SECURITY_HOST_SOFT_BANNED),
+    '#description' => t('Enter the message to be shown in the site when a host attempts to login too many times.'),
+  );  
+  $form['login_security']['Notifications']['login_security_host_hard_banned'] = array(
+//  I wonder if this message is shown as the IP is blocked
+    '#type' => 'textarea',
+    '#rows' => 2,
+    '#title' => t('Message for banned host (Hard IP ban)'),
+    '#default_value' => variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED),
+    '#description' => t('Enter the message to be shown in the site when a host attempts to login too many times so the system disable any access to the site.'),
+  );  
+  $form['login_security']['Notifications']['login_security_user_blocked'] = array(
+    '#type' => 'textarea',
+    '#rows' => 2,
+    '#title' => t('Message when user is blocked by uid'),
+    '#default_value' => variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED),
+    '#description' => t('Enter the message to be shown in the site when a user gets blocked due to enough failed login attempts.'),
+  );  
+  
+  $form['login_security']['Notifications']['login_security_user_blocked_email'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Send email message to the admin when a user is blocked'),
+    '#default_value' => variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL),
+  );    
+  $form['login_security']['Notifications']['login_security_user_blocked_email_subject'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email Subject'),
+    '#default_value' => variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT),
+  );  
+  $form['login_security']['Notifications']['login_security_user_blocked_email_body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Email body'),
+    '#default_value' => variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY),
+    '#description' => t('Enter the body of message to be sent to the administrator informing a user has been blocked.'),
+  );  
+  
 	return $form;
 }
 
@@ -165,7 +242,7 @@ function login_security_validate($form_item) {
    if ($lcount = variable_get('login_security_host_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT)){
    	 $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", mip_address()));
      if ($count > $lcount){
-				form_set_error('submit',t('This host is not allowed to login the site. Please contact your site administrator'));
+				form_set_error('submit', t(variable_get('login_security_host_soft_banned', LOGIN_SECURITY_HOST_SOFT_BANNED),array('%ip' => $ip)));
 				drupal_goto(drupal_get_destination()); 
      }
    }
@@ -207,6 +284,7 @@ function login_user_block_ip($ip = NULL ) {
 	}
   db_query("INSERT INTO {access} (mask, type, status) VALUES ('%s', '%s', %d)", $ip, 'host', 0);
   watchdog('security', t('Banned IP address %ip because of login security configuration', array('%ip' => $ip)));
+	form_set_error('void', t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), array('%ip' => $ip) ));
 }
 
 /**
@@ -221,9 +299,16 @@ function login_user_block_user_id($uid = NULL) {
     $uid = $user->uid;
   }    
   if ($uid ==1) return;
-  db_query("UPDATE {users} SET status = 0 WHERE uid = %d", $uid);
-  sess_destroy_uid($uid);
-  watchdog('security', t('Blocked user id %id due to security configuration', array('%id' => $uid)));
+//  Modifying the user table is not an option so it disables the user hooks. Need to do 
+//  firing the hook so user_notifications can be used.   
+//  db_query("UPDATE {users} SET status = 0 WHERE uid = %d", $uid);    
+
+  	$account = user_load(array("uid"=>$uid));
+  	user_save($account,array('status' => 0),NULL); 
+
+//  remove user from site now.
+    sess_destroy_uid($uid);
+    watchdog('security', t('Blocked user id %uid due to security configuration', array('%uid' => $uid)));
 }
 
 /**
@@ -237,12 +322,44 @@ function login_user_block_user_name($name = NULL) {
   if (!$name) {
     global $user;
     $name = $user->name;
-  }    
+  }      
   $uid = db_result(db_query("SELECT uid FROM {users} WHERE uid != 1 and name = '%s'", $name));
   if ($uid){
+  	form_set_error('void', t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), array('%username' => $name)) );
   	login_user_block_user_id($uid);
+//  Send admin email
+    if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL) ){
+    	 $from = variable_get('site_mail', ini_get('sendmail_from'));
+       $headers = array(
+         'X-Mailer' => 'Drupal Login Security module http://drupal.org/project/login_security',
+       );
+       $variables = _login_security_get_variables($uid);
+       $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE uid = 1"));
+       $subject = strtr(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
+       $body = strtr(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
+       return drupal_mail('login_security', $admin_mail, $subject, $body, $from, $headers);
+
+
+    }
   }
 }
+
+function _login_security_get_variables($uid) {
+	$account = user_load(array("uid"=>$uid));
+  global $base_url;
+  $variables = array(
+    '%username' => $account->name,
+    '%site' => variable_get('site_name', 'drupal'),
+    '%uri' => $base_url,
+    '%uri_brief' => substr($base_url, strlen('http://')),
+    '%email' => $account->mail,
+    '%date' => format_date(time()),
+    '%edit_uri' => url('user/'. $account->uid .'/edit', NULL, NULL, TRUE),
+  );
+  return $variables;
+}
+
+
 
 /**
  * Helper function to get the IP Address viewing the page.

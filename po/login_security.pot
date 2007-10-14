@@ -1,0 +1,177 @@
+# $Id$
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright 2007 <ilo@reversing.org>
+# Generated from files:
+#  login_security.module,v 1.1 2007/09/24 21:54:11 ilo
+#  login_security.install,v 1.1 2007/09/24 21:54:11 ilo
+#  login_security.info,v 1.1 2007/09/24 21:54:11 ilo
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2007-10-09 02:14+0200\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: ilo <ilo@reversing.org>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: login_security.module:53
+msgid "Attachs security options to the login flow of the site."
+msgstr ""
+
+#: login_security.module:94
+msgid "Security settings"
+msgstr ""
+
+#: login_security.module:111
+msgid "Track time"
+msgstr ""
+
+#: login_security.module:115
+msgid "Enter the time in hours each login attempt is kept for future computing."
+msgstr ""
+
+#: login_security.module:116
+msgid "Hours"
+msgstr ""
+
+#: login_security.module:120
+msgid "Login delay base time"
+msgstr ""
+
+#: login_security.module:124
+msgid "Enter the base time for login delay, computed as (base time) x (login attempts) for that user."
+msgstr ""
+
+#: login_security.module:125
+msgid "Seconds"
+msgstr ""
+
+#: login_security.module:129
+msgid "Maximun count of login fails before blocking a user"
+msgstr ""
+
+#: login_security.module:133
+msgid "Enter number of login fails a user is allowed to enter, after that ammount, the user will be blocked, no matter the host attempting to login. Use this option carefully as in a public site, an attacker may block your site users."
+msgstr ""
+
+#: login_security.module:134;143;152
+msgid "Attempts"
+msgstr ""
+
+#: login_security.module:138
+msgid "Maximun total of login fails before soft blocking a host"
+msgstr ""
+
+#: login_security.module:142
+msgid "Enter number of login fails a host is allowed to enter. After that ammount, the host will not be able to login, but can still browse the site contents."
+msgstr ""
+
+#: login_security.module:147
+msgid "Maximun total of login fails before blocking a host"
+msgstr ""
+
+#: login_security.module:151
+msgid "Enter number of login fails a host is allowed to enter. After that ammount, the host will be blocked, no matter the username attempting to login."
+msgstr ""
+
+#: login_security.module:156
+msgid "Edit notifications"
+msgstr ""
+
+#: login_security.module:163
+msgid "Message for banned host (Soft IP ban)"
+msgstr ""
+
+#: login_security.module:166
+msgid "Enter the message to be shown in the site when a host attempts to login too many times."
+msgstr ""
+
+#: login_security.module:172
+msgid "Message for banned host (Hard IP ban)"
+msgstr ""
+
+#: login_security.module:174
+msgid "Enter the message to be shown in the site when a host attempts to login too many times so the system disable any access to the site."
+msgstr ""
+
+#: login_security.module:179
+msgid "Message when user is blocked by uid"
+msgstr ""
+
+#: login_security.module:181
+msgid "Enter the message to be shown in the site when a user gets blocked due to enough failed login attempts."
+msgstr ""
+
+#: login_security.module:186
+msgid "Send email message to the admin when a user is blocked"
+msgstr ""
+
+#: login_security.module:191
+msgid "Email Subject"
+msgstr ""
+
+#: login_security.module:196
+msgid "Email body"
+msgstr ""
+
+#: login_security.module:198
+msgid "Enter the body of message to be sent to the administrator informing a user has been blocked."
+msgstr ""
+
+#: login_security.module:286
+msgid "Banned IP address %ip because of login security configuration"
+msgstr ""
+
+#: login_security.module:311
+msgid "Blocked user id %uid due to security configuration"
+msgstr ""
+
+#: login_security.module:286;311
+msgid "security"
+msgstr ""
+
+#: login_security.module:0
+msgid "login_security"
+msgstr ""
+
+#: login_security.install:17
+msgid "Created security table"
+msgstr ""
+
+#: login_security.install:23
+msgid "Removing security options"
+msgstr ""
+
+#: login_security.info:0
+msgid "Login Security"
+msgstr ""
+
+#: login_security.info:0
+msgid "Enable security options in the login flow of the site."
+msgstr ""
+
+#: login_security.info:0
+msgid "This host is not allowed to login the site. Please contact your site administrator"
+msgstr ""
+
+#: login_security.info:0
+msgid "The IP address %ip is banned in this site, and will not be able to access any of it's content from now on. Please contact the site administrator."
+msgstr ""
+
+#: login_security.info:0
+msgid "The user %username has been blocked due to failed login attempts"
+msgstr ""
+
+#: login_security.info:0
+msgid "Security action: The user %username has been blocked"
+msgstr ""
+
+#: login_security.info:0
+msgid "The user %username has been blocked in the site due to the ammount of failed login attempts. Please check the logs of the site to get more information"
+msgstr ""

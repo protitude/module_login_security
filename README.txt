@@ -111,6 +111,33 @@ Note: The tracking entries in the database for any host <-> username pair are
       being deleted on: login, update and delete. 
 
 
+
+Notifications
+-------------
+
+Thanks to christefano, the module now accepts configurable notifications for the
+actions. These are the available placeholders for the displayed messages:
+
+ - In site "host is banned" message (soft and hard):
+   %ip        : banned IP address
+   
+ - In site message when a user is blocked:
+   %username  : the user name blocked
+
+ - Email to admin: dynamic strings in subject and body
+   %username  : the user name blocked
+   %site      : the name of the site
+   %uri       : site base url
+   %uri_brief : clean site url
+   %email     : blocked user email
+   %date      : current date/time
+   %edit_uri  : direct link to edit blocked user
+   
+ If you want your users to be informed when it's account has been blocked, you can use the
+ module "Extended user status notifications": http://www.drupal.org/project/user_status
+   
+   
+
 Future Roadmap
 --------------
 
