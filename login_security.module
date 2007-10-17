@@ -1,7 +1,7 @@
 <?php 
 /* $Id$ */
 /* GPL published.. if you don't have a copy of the license, search for it, it's free */
-/* Copyrigthed by ilo@reversing.org */
+/* Copyrighted by ilo@reversing.org */
 
 
 /*
@@ -24,7 +24,7 @@
    - notificar usuario bloqueado al admin.
    - notificar IP bloqueada al admin.
 
-*/
+ */
 
 
 define('LOGIN_SECURITY_TRACK_TIME', 0);
@@ -32,12 +32,12 @@ define('LOGIN_SECURITY_BASE_TIME', 0);
 define('LOGIN_SECURITY_USER_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
-define('LOGIN_SECURITY_HOST_SOFT_BANNED',"This host is not allowed to login the site. Please contact your site administrator");
-define('LOGIN_SECURITY_HOST_HARD_BANNED',"The IP address %ip is banned in this site, and will not be able to access any of it's content from now on. Please contact the site administrator.");
-define('LOGIN_SECURITY_USER_BLOCKED',"The user %username has been blocked due to failed login attempts");
+define('LOGIN_SECURITY_HOST_SOFT_BANNED', "This host is not allowed to log in to %site. Please contact your site administrator.");
+define('LOGIN_SECURITY_HOST_HARD_BANNED', "The IP address <em>%ip</em> is banned at %site, and will not be able to access any of its content from now on. Please contact the site administrator.");
+define('LOGIN_SECURITY_USER_BLOCKED', "The user <em>%username</em> has been blocked due to failed login attempts.");
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL', FALSE);
-define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT',"Security action: The user %username has been blocked");
-define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY',"The user %username has been blocked in the site due to the ammount of failed login attempts. Please check the logs of the site to get more information");
+define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT', "Security action: The user %username has been blocked.");
+define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', "The user %username has been blocked at %site due to the amount of failed login attempts. Please check the logs for more information.");
 
 /**
  * @file Login Security
@@ -50,18 +50,18 @@ function login_security_help($section) {
   switch ($section) {
     case 'admin/modules#description':
       // This description is shown in the listing at admin/modules.
-      return t('Attachs security options to the login flow of the site.');
+      return t('Adds security options to the login flow of the site.');
   }
 }
 
  /**
  * Implementation of hook_cron()
  */
-function login_security_cron(){
+function login_security_cron() {
 // calc expiring time of login security tracked entries
-	$time = time() - ( variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME) * 3600);
-  db_query("DELETE FROM {login_security_track} WHERE timestamp < '%d'", $time);	
-	return;
+  $time = time() - ( variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME) * 3600);
+    db_query("DELETE FROM {login_security_track} WHERE timestamp < '%d'", $time);
+  return;
 }
 
 /**
@@ -71,7 +71,7 @@ function login_security_user($op, &$edit, &$account, $category = NULL) {
   global $user;
   switch ($op) {
     case 'login': case 'update': case 'delete':
-//  On success login remove any temporal protection for the IP address and the username
+//  On success login remove any temporary protection for the IP address and the username
     db_query("DELETE FROM {login_security_track} WHERE name = '%s' and host = '%s'", check_plain($edit['name']), mip_address());
     break;
   }
@@ -81,30 +81,30 @@ function login_security_user($op, &$edit, &$account, $category = NULL) {
  * Implementation of hook_form_alter().
  */
 function login_security_form_alter($form_id, &$form) {  
-	switch ($form_id){
-		 case 'user_login':
-		 case 'user_login_block':
+  switch ($form_id) {
+    case 'user_login':
+    case 'user_login_block':
 //     Attach a new validatdor for the name field
-	     $form['name']['#validate']['login_security_validate'] = array();
+       $form['name']['#validate']['login_security_validate'] = array();
        break;
      case 'user_admin_settings':
-		   if (user_access('administer users')){
+       if (user_access('administer users')) {
          $form['login_security'] = array(
            '#type' => 'fieldset',
-           '#title' => t('Security settings'),
+           '#title' => t('Login Security settings'),
            '#weight' => 0,
            '#collapsible' => FALSE,
          );
-  	     $form['login_security'][] = login_security_build_admin_form();
-  	    }
-  	  break;
+         $form['login_security'][] = login_security_build_admin_form();
+        }
+        break;
   }
 }
 
  /**
  * Build a form body for the configuration settings.
  */
-function login_security_build_admin_form(){
+function login_security_build_admin_form() {
   $form = array();
   $form['login_security_track_time'] = array(
     '#type' => 'textfield',
@@ -112,7 +112,7 @@ function login_security_build_admin_form(){
     '#default_value' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the time in hours each login attempt is kept for future computing.'),
+    '#description' => t('Enter the time that each failed login attempt is kept for future computing.'),
     '#field_suffix' => '<kbd>'. t('Hours') .'</kbd>'
   );
   $form['login_security_delay_base_time'] = array(
@@ -126,30 +126,30 @@ function login_security_build_admin_form(){
   );
   $form['login_security_user_wrong_count'] = array(
     '#type' => 'textfield',
-    '#title' => t('Maximun count of login fails before blocking a user'),
+    '#title' => t('Maximum number of login failures before blocking a user'),
     '#default_value' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter number of login fails a user is allowed to enter, after that ammount, the user will be blocked, no matter the host attempting to login. Use this option carefully as in a public site, an attacker may block your site users.'),
-    '#field_suffix' => '<kbd>'. t('Attempts') .'</kbd>'
+    '#description' => t('Enter the number of login failures a user is allowed. After that amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users.'),
+    '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_host_wrong_count'] = array(
     '#type' => 'textfield',
-    '#title' => t('Maximun total of login fails before soft blocking a host'),
+    '#title' => t('Maximum number of login failures before soft blocking a host'),
     '#default_value' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_HOST_WRONG_COUNT),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter number of login fails a host is allowed to enter. After that ammount, the host will not be able to login, but can still browse the site contents.'),
-    '#field_suffix' => '<kbd>'. t('Attempts') .'</kbd>'
+    '#description' => t('Enter the number of login failures a host is allowed. After that amount is reached, the host will not be able to log in but can still browse the site contents as an anonymous user.'),
+    '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_host_wrong_count_hard'] = array(
     '#type' => 'textfield',
-    '#title' => t('Maximun total of login fails before blocking a host'),
+    '#title' => t('Maximum number of login failures before blocking a host'),
     '#default_value' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter number of login fails a host is allowed to enter. After that ammount, the host will be blocked, no matter the username attempting to login.'),
-    '#field_suffix' => '<kbd>'. t('Attempts') .'</kbd>'
+    '#description' => t('Enter the number of login failures a host is allowed. After that number is reached, the host will be blocked, no matter the username attempting to log in.'),
+    '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security']['Notifications'] = array(
            '#type' => 'fieldset',
@@ -163,7 +163,7 @@ function login_security_build_admin_form(){
     '#title' => t('Message for banned host (Soft IP ban)'),
     '#rows' => 2,
     '#default_value' => variable_get('login_security_host_soft_banned', LOGIN_SECURITY_HOST_SOFT_BANNED),
-    '#description' => t('Enter the message to be shown in the site when a host attempts to login too many times.'),
+    '#description' => t('Enter the soft IP ban message to be shown when a host attempts to log in too many times.'),
   );  
   $form['login_security']['Notifications']['login_security_host_hard_banned'] = array(
 //  I wonder if this message is shown as the IP is blocked
@@ -171,14 +171,14 @@ function login_security_build_admin_form(){
     '#rows' => 2,
     '#title' => t('Message for banned host (Hard IP ban)'),
     '#default_value' => variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED),
-    '#description' => t('Enter the message to be shown in the site when a host attempts to login too many times so the system disable any access to the site.'),
+    '#description' => t('Enter the hard IP ban message to be shown when a host attempts to log in too many times.'),
   );  
   $form['login_security']['Notifications']['login_security_user_blocked'] = array(
     '#type' => 'textarea',
     '#rows' => 2,
     '#title' => t('Message when user is blocked by uid'),
     '#default_value' => variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED),
-    '#description' => t('Enter the message to be shown in the site when a user gets blocked due to enough failed login attempts.'),
+    '#description' => t('Enter the message to be shown when a user gets blocked due to enough failed login attempts.'),
   );  
   
   $form['login_security']['Notifications']['login_security_user_blocked_email'] = array(
@@ -188,17 +188,17 @@ function login_security_build_admin_form(){
   );    
   $form['login_security']['Notifications']['login_security_user_blocked_email_subject'] = array(
     '#type' => 'textfield',
-    '#title' => t('Email Subject'),
+    '#title' => t('Email subject'),
     '#default_value' => variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT),
   );  
   $form['login_security']['Notifications']['login_security_user_blocked_email_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Email body'),
     '#default_value' => variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY),
-    '#description' => t('Enter the body of message to be sent to the administrator informing a user has been blocked.'),
+    '#description' => t('Enter the message to be sent to the administrator informing a user has been blocked.'),
   );  
   
-	return $form;
+  return $form;
 }
 
 
@@ -220,39 +220,39 @@ function login_security_validate($form_item) {
    login_security_save_pair($name, mip_address());   
 
 // Start with login Delay
-   if ($delay = variable_get('login_security_delay_base_time', LOGIN_SECURITY_USER_BASE_TIME)){
-   	 $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s' and host = '%s'", $name, mip_address()));
-   	 $secs = intval($count-1) * intval($delay);
-     if ($secs >= ini_get('max_execution_time')){
-     	 $secs = ini_get('max_execution_time') - 3;
+   if ($delay = variable_get('login_security_delay_base_time', LOGIN_SECURITY_USER_BASE_TIME)) {
+     $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s' and host = '%s'", $name, mip_address()));
+     $secs = intval($count-1) * intval($delay);
+     if ($secs >= ini_get('max_execution_time')) {
+        $secs = ini_get('max_execution_time') - 3;
      }
-   	 @sleep($secs);
+     @sleep($secs);
    }
 
 // Check for host login attempts: Hard
-   if ($lcount = variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_USER_WRONG_COUNT_HARD)){
-   	 $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", mip_address()));
-     if ($count > $lcount){
+   if ($lcount = variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_USER_WRONG_COUNT_HARD)) {
+     $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", mip_address()));
+     if ($count > $lcount) {
 //      block the host mip_address()
-				login_user_block_ip();     	
+                login_user_block_ip();
      }
    }
 
 // Check for host login attempts: Soft
-   if ($lcount = variable_get('login_security_host_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT)){
-   	 $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", mip_address()));
-     if ($count > $lcount){
-				form_set_error('submit', t(variable_get('login_security_host_soft_banned', LOGIN_SECURITY_HOST_SOFT_BANNED),array('%ip' => $ip)));
-				drupal_goto(drupal_get_destination()); 
+   if ($lcount = variable_get('login_security_host_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT)) {
+     $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", mip_address()));
+     if ($count > $lcount) {
+                form_set_error('submit', t(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), array('%ip' => $ip)));
+                drupal_goto(drupal_get_destination()); 
      }
    }
 
 // Check for user login attempts
-   if ($ucount = variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT)){
-   	 $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s'", $name));
-     if ($count > $ucount){
+   if ($ucount = variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT)) {
+     $count = db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s'", $name));
+     if ($count > $ucount) {
 //      Block the account $name
-     	  login_user_block_user_name($name);
+         login_user_block_user_name($name);
      }
    }
 }
@@ -266,10 +266,10 @@ function login_security_validate($form_item) {
  * @param $ip
  *   IP Address of the pair.
  */
-function login_security_save_pair($name, $ip){
+function login_security_save_pair($name, $ip) {
 // Each fail attempt is kept for future minning of advanced bruteforcing 
 // like multiple IP or X-Forwarded-for usage and automated track data cleanup
-   db_query("INSERT INTO {login_security_track} (name, host, timestamp) VALUES ('%s', '%s', %d)", $name, $ip, time());	
+   db_query("INSERT INTO {login_security_track} (name, host, timestamp) VALUES ('%s', '%s', %d)", $name, $ip, time());
 }
 
 /**
@@ -279,12 +279,12 @@ function login_security_save_pair($name, $ip){
  *   Optional. Add a deny rule in the access control to this IP Address.
  */
 function login_user_block_ip($ip = NULL ) {
-	if (!$ip){
-		$ip = mip_address();
-	}
+  if (!$ip) {
+      $ip = mip_address();
+    }
   db_query("INSERT INTO {access} (mask, type, status) VALUES ('%s', '%s', %d)", $ip, 'host', 0);
   watchdog('security', t('Banned IP address %ip because of login security configuration', array('%ip' => $ip)));
-	form_set_error('void', t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), array('%ip' => $ip) ));
+  form_set_error('void', t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), array('%ip' => $ip) ));
 }
 
 /**
@@ -303,8 +303,8 @@ function login_user_block_user_id($uid = NULL) {
 //  firing the hook so user_notifications can be used.   
 //  db_query("UPDATE {users} SET status = 0 WHERE uid = %d", $uid);    
 
-  	$account = user_load(array("uid"=>$uid));
-  	user_save($account,array('status' => 0),NULL); 
+    $account = user_load(array("uid" => $uid));
+    user_save($account, array('status' => 0), NULL); 
 
 //  remove user from site now.
     sess_destroy_uid($uid);
@@ -324,12 +324,12 @@ function login_user_block_user_name($name = NULL) {
     $name = $user->name;
   }      
   $uid = db_result(db_query("SELECT uid FROM {users} WHERE uid != 1 and name = '%s'", $name));
-  if ($uid){
-  	form_set_error('void', t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), array('%username' => $name)) );
-  	login_user_block_user_id($uid);
+  if ($uid) {
+    form_set_error('void', t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), array('%username' => $name)) );
+    login_user_block_user_id($uid);
 //  Send admin email
-    if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL) ){
-    	 $from = variable_get('site_mail', ini_get('sendmail_from'));
+    if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL) ) {
+       $from = variable_get('site_mail', ini_get('sendmail_from'));
        $headers = array(
          'X-Mailer' => 'Drupal Login Security module http://drupal.org/project/login_security',
        );
@@ -345,7 +345,7 @@ function login_user_block_user_name($name = NULL) {
 }
 
 function _login_security_get_variables($uid) {
-	$account = user_load(array("uid"=>$uid));
+  $account = user_load(array("uid" => $uid));
   global $base_url;
   $variables = array(
     '%username' => $account->name,

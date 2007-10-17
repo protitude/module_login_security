@@ -136,19 +136,40 @@ actions. These are the available placeholders for the displayed messages:
  If you want your users to be informed when it's account has been blocked, you can use the
  module "Extended user status notifications": http://www.drupal.org/project/user_status
    
-   
+
+Other modules interaction
+-------------------------
+
+Thanks to christefano, now the login_security fits well in any drupal installation allowing
+without breaking other module operations. The only interaction being performed for just 
+blocks a user, so to switch the user status an update hook is launched. Other modules can
+now react to that hook.
+
+This module doesn't include the option to notify the user when it's account is blocked. You
+can use the module: "Extended user status notifications" for that operation.
+
 
 Future Roadmap
 --------------
 
-In a future a better bruteforce and control function is to be included, so
-database is now ready for this future update. A fuzzy dataminner will be 
-able to detect bruteforce attacks no matter the time and scope.
+In a future a better bruteforce and control function is to be included, so 
+database is now ready for this future update. A fuzzy dataminner will be able 
+to detect bruteforce attacks no matter the time and scope.
 
 Why is not password policy included in this module? Because of:
+
 http://drupal.org/project/password_policy
+
 There exists a module for that, may be you should encourage it's mantainer to
 update the code for 5.x and 6.x branches of drupal.
 
+Thanks to..
+-----------
+
+Christefano has done a great job helping with the code cleanup and the string
+cleaning.. my english is not that good yet!. The module has more options 
+now! Thanks dude!
+
+
 ilo [at] reversing.org
-ilo [at] nvironment.org
+christefano can be located at http://parahuman.org/contact/

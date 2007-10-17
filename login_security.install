@@ -6,14 +6,14 @@ function login_security_install() {
   case 'mysql':
   case 'mysqli':
     db_query("CREATE TABLE {login_security_track} (".
-	   "id int unsigned NOT NULL auto_increment, ".
-	   "host varchar(15) NOT NULL, ".
-	   "name varchar(64) NOT NULL, ".
-	   "timestamp int(11) unsigned NOT NULL, ".
-	   "PRIMARY KEY (id,name,host), ".
-	   "INDEX (timestamp) ".
-	   ") /*!40100 DEFAULT CHARACTER SET utf8 */;"
-	   );
+       "id int unsigned NOT NULL auto_increment, ".
+       "host varchar(15) NOT NULL, ".
+       "name varchar(64) NOT NULL, ".
+       "timestamp int(11) unsigned NOT NULL, ".
+       "PRIMARY KEY (id,name,host), ".
+       "INDEX (timestamp) ".
+       ") /*!40100 DEFAULT CHARACTER SET utf8 */;"
+       );
     drupal_set_message(t('Created security table'));
     break;
   }
@@ -28,4 +28,3 @@ function login_security_uninstall() {
    variable_del('login_security_host_wrong_count_hard');
    db_query("DROP TABLE {login_security_track}");
 }
-
