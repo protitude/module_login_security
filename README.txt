@@ -108,7 +108,7 @@ is banned.
 
 Note: (4th and 5th operations are not being cancelled automatically).
 Note: The tracking entries in the database for any host <-> username pair are 
-      being deleted on: login, update and delete. 
+      being deleted on: 'login', 'update' and 'delete' operations. 
 
 
 
@@ -118,23 +118,28 @@ Notifications
 Thanks to christefano, the module now accepts configurable notifications for the
 actions. These are the available placeholders for the displayed messages:
 
- - In site "host is banned" message (soft and hard):
-   %ip        : banned IP address
-   
- - In site message when a user is blocked:
-   %username  : the user name blocked
+    %date                  :  The (formated) date and time of the operation 
+    %ip                    :  The IP Address performing the operation
+    %username              :  The username entered in the login form (sanitized)
+    %email                 :  If the user exists, this will be it's name
+    %uid                   :  ..and if exists, this will be it's uid
+    %site                  :  The configured site's name 
+    %uri                   :  The base url of the drupal site
+    %edit_uri              :  Direct link to the user (name entered) edit operations
+    %hard_block_attempts   :  Configured login attempts before hard blocking the IP address
+    %soft_block_attempts   :  Configured login attempts before soft blocking the IP address
+    %user_block_attempts   :  Configured login attempts before blocking the user
+    %user_ip_current_count :  The total attempts for the name entered by this IP address
+    %ip_current_count      :  The total login attempts by this IP address
+    %user_current_count    :  The total login attempts for this name (no matter the IP address)
+    %tracking_time         :  The tracking time, it's maximun soft blocking time.
 
- - Email to admin: dynamic strings in subject and body
-   %username  : the user name blocked
-   %site      : the name of the site
-   %uri       : site base url
-   %uri_brief : clean site url
-   %email     : blocked user email
-   %date      : current date/time
-   %edit_uri  : direct link to edit blocked user
+
+Also, the placeholders are propagated to the watchdog system for any customization
+needed in the auditing properties, but this has to be modified in the module source code.
    
- If you want your users to be informed when it's account has been blocked, you can use the
- module "Extended user status notifications": http://www.drupal.org/project/user_status
+If you want your users to be informed when it's account has been blocked, you can use the
+module "Extended user status notifications": http://www.drupal.org/project/user_status
    
 
 Other modules interaction

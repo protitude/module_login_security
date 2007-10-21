@@ -1,18 +1,17 @@
 # $Id$
 #
 # LANGUAGE translation of Drupal (general)
-# Copyright 2007 ilo <ilo@reversign.org>
-# English grammar and code cleanup by christefano
+# Copyright 2007 ilo <ilo@reversing.org>
 # Generated from files:
-#  login_security.module,v 1.2 2007/10/14 22:10:22 ilo
-#  login_security.install,v 1.1 2007/09/24 21:54:11 ilo
+#  login_security.module,v 1.3 2007/10/17 20:46:37 ilo
+#  login_security.install,v 1.2 2007/10/17 20:46:37 ilo
 #  login_security.info,v 1.1 2007/09/24 21:54:11 ilo
 #
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PROJECT VERSION\n"
-"POT-Creation-Date: 2007-10-17 22:28+0200\n"
+"POT-Creation-Date: 2007-10-21 22:49+0200\n"
 "PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
 "Last-Translator: NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
@@ -21,119 +20,161 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
 
-#: login_security.module:53
+#default messages
+
+#: login_security.module:1
+msgid "You have used %ip_current_count out of %hard_block_attempts login attempts. After all %hard_block_attempts have been used, you will be unable to login for %tracking_time hour(s)."
+msgstr ""
+
+#: login_security.module:2
+msgid "This host is not allowed to log in to %site. Please contact your site administrator."
+msgstr ""
+
+#: login_security.module:3
+msgid "The IP address <em>%ip</em> is banned at %site, and will not be able to access any of its content from now on. Please contact the site administrator."
+msgstr ""
+
+#: login_security.module:4
+msgid "The user <em>%username</em> has been blocked due to failed login attempts."
+msgstr ""
+
+#: login_security.module:5
+msgid "Security action: The user %username has been blocked."
+msgstr ""
+
+#: login_security.module:6
+msgid "The user %username has been blocked at %site due to the amount of failed login attempts. Please check the logs for more information."
+msgstr ""
+
+#: login_security.module:32
 msgid "Adds security options to the login flow of the site."
 msgstr ""
 
-#: login_security.module:94
+#: login_security.module:73
 msgid "Login Security settings"
 msgstr ""
 
-#: login_security.module:111
+#: login_security.module:90
 msgid "Track time"
 msgstr ""
 
-#: login_security.module:115
+#: login_security.module:94
 msgid "Enter the time that each failed login attempt is kept for future computing."
 msgstr ""
 
-#: login_security.module:116
+#: login_security.module:95
 msgid "Hours"
 msgstr ""
 
-#: login_security.module:120
+#: login_security.module:99
 msgid "Login delay base time"
 msgstr ""
 
-#: login_security.module:124
+#: login_security.module:103
 msgid "Enter the base time for login delay, computed as (base time) x (login attempts) for that user."
 msgstr ""
 
-#: login_security.module:125
+#: login_security.module:104
 msgid "Seconds"
 msgstr ""
 
-#: login_security.module:129
+#: login_security.module:108
 msgid "Maximum number of login failures before blocking a user"
 msgstr ""
 
-#: login_security.module:133
+#: login_security.module:112
 msgid "Enter the number of login failures a user is allowed. After that amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users."
 msgstr ""
 
-#: login_security.module:134;143;152
+#: login_security.module:113;122;131
 msgid "Failed attempts"
 msgstr ""
 
-#: login_security.module:138
+#: login_security.module:117
 msgid "Maximum number of login failures before soft blocking a host"
 msgstr ""
 
-#: login_security.module:142
+#: login_security.module:121
 msgid "Enter the number of login failures a host is allowed. After that amount is reached, the host will not be able to log in but can still browse the site contents as an anonymous user."
 msgstr ""
 
-#: login_security.module:147
+#: login_security.module:126
 msgid "Maximum number of login failures before blocking a host"
 msgstr ""
 
-#: login_security.module:151
+#: login_security.module:130
 msgid "Enter the number of login failures a host is allowed. After that number is reached, the host will be blocked, no matter the username attempting to log in."
 msgstr ""
 
-#: login_security.module:156
+#: login_security.module:136
 msgid "Edit notifications"
 msgstr ""
 
-#: login_security.module:163
+#: login_security.module:144
+msgid "Notify the user after any failed login attempt"
+msgstr ""
+
+#: login_security.module:146
+msgid "Security tip: If you enable this option, try to not disclose as much of your login policies as possible in the message shown on any failed login attempt."
+msgstr ""
+
+#: login_security.module:150
+msgid "Message to be shown on each failed login attempt"
+msgstr ""
+
+#: login_security.module:153
+msgid "Enter the message string to be shown if the login fails after the form is submitted. You can use any of the placeholders here."
+msgstr ""
+
+#: login_security.module:158
 msgid "Message for banned host (Soft IP ban)"
 msgstr ""
 
-#: login_security.module:166
+#: login_security.module:161
 msgid "Enter the soft IP ban message to be shown when a host attempts to log in too many times."
 msgstr ""
 
-#: login_security.module:172
+#: login_security.module:166
 msgid "Message for banned host (Hard IP ban)"
 msgstr ""
 
-#: login_security.module:174
+#: login_security.module:168
 msgid "Enter the hard IP ban message to be shown when a host attempts to log in too many times."
 msgstr ""
 
-#: login_security.module:179
+#: login_security.module:173
 msgid "Message when user is blocked by uid"
 msgstr ""
 
-#: login_security.module:181
+#: login_security.module:175
 msgid "Enter the message to be shown when a user gets blocked due to enough failed login attempts."
 msgstr ""
 
-#: login_security.module:186
+#: login_security.module:180
 msgid "Send email message to the admin when a user is blocked"
 msgstr ""
 
-#: login_security.module:191
+#: login_security.module:185
 msgid "Email subject"
 msgstr ""
 
-#: login_security.module:196
+#: login_security.module:190
 msgid "Email body"
 msgstr ""
 
-#: login_security.module:198
+#: login_security.module:192
 msgid "Enter the message to be sent to the administrator informing a user has been blocked."
 msgstr ""
 
-#: login_security.module:286
+#: login_security.module:284
 msgid "Banned IP address %ip because of login security configuration"
 msgstr ""
 
-#: login_security.module:311
-msgid "Blocked user id %uid due to security configuration"
+#: login_security.module:306
+msgid "Blocked user %name: with id %uid due to security configuration"
 msgstr ""
 
-#: login_security.module:286;311
+#: login_security.module:284;306
 msgid "security"
 msgstr ""
 
