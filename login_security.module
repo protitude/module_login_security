@@ -50,6 +50,20 @@ function login_security_user($op, &$edit, &$account, $category = NULL) {
   global $user;
   switch ($op) {
     case 'login': case 'update': case 'delete':
+//  Remove any notice message.. Damm.. I have to add more code to clean the message than to work for security :D
+    if ((variable_get('login_security_notice_available_attempts', LOGIN_SECURITY_NOTICE_AVAILABLE_ATTEMPTS)) && (isset($_SESSION['messages']['status']))) {
+      foreach($_SESSION['messages']['status'] as $mid => $mstr){
+        if (substr($mstr, 0, 23) == "<!-- login_security -->"){
+          unset($_SESSION['messages']['status'][$mid]);        
+        }
+      }
+    }    
+//  clean the messages queue..    
+    if (!count($_SESSION['messages']['status']))
+      unset($_SESSION['messages']['status']);
+    if (!count($_SESSION['messages']))
+      unset($_SESSION['messages']);
+    
 //  On success login remove any temporary protection for the IP address and the username
     db_query("DELETE FROM {login_security_track} WHERE name = '%s' and host = '%s'", check_plain($edit['name']), mip_address());
     break;
@@ -253,7 +267,7 @@ function login_security_validate($form_item) {
 // Should the user be advised about the remaining login attempts? 
    $notice_user = variable_get('login_security_notice_available_attempts', LOGIN_SECURITY_NOTICE_AVAILABLE_ATTEMPTS);
    if ($notice_user == TRUE){
-     form_set_error('submit', t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables));
+     drupal_set_message( "<!-- login_security -->" . t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables));
    }
 
 }
