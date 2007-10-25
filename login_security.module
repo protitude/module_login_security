@@ -10,7 +10,7 @@ define('LOGIN_SECURITY_USER_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
 define('LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE', 0);
-define('LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE', "You have used %ip_current_count out of %soft_block_attempts login attempts. After all %hard_block_attempts have been used, you will be unable to login for %tracking_time hour(s).");
+define('LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE', "You have used %ip_current_count out of %soft_block_attempts login attempts. After all %soft_block_attempts have been used, you will be unable to login for %tracking_time hour(s).");
 define('LOGIN_SECURITY_HOST_SOFT_BANNED', "This host is not allowed to log in to %site. Please contact your site administrator.");
 define('LOGIN_SECURITY_HOST_HARD_BANNED', "The IP address <em>%ip</em> is banned at %site, and will not be able to access any of its content from now on. Please contact the site administrator.");
 define('LOGIN_SECURITY_USER_BLOCKED', "The user <em>%username</em> has been blocked due to failed login attempts.");
@@ -340,7 +340,7 @@ function login_user_block_user_name($variables) {
  */
 function _login_security_get_variables_by_name($name) {
   $account = user_load(array("name" => $name));
-  $ipaddres = mip_address();
+  $ipaddress = mip_address();
   global $base_url;
   $variables = array(
     '%date' => format_date(time()),
@@ -354,8 +354,8 @@ function _login_security_get_variables_by_name($name) {
     '%hard_block_attempts' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
     '%soft_block_attempts' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
     '%user_block_attempts' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
-    '%user_ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s' and host = '%s'", $name, $ipaddres)),
-    '%ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", $ipaddres)),
+    '%user_ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s' and host = '%s'", $name, $ipaddress)),
+    '%ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", $ipaddress)),
     '%user_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s'", $name)),
     '%tracking_time' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
   );
