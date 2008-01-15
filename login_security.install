@@ -14,8 +14,23 @@ function login_security_install() {
        "INDEX (timestamp) ".
        ") /*!40100 DEFAULT CHARACTER SET utf8 */;"
        );
-    drupal_set_message(t('Created security table'));
+    drupal_set_message(t('Created security table'));    
     break;
+  case 'pgsql':
+		db_query("CREATE TABLE {login_security_track} (".
+       "id serial NOT NULL, ".
+       "host varchar(15) NOT NULL, ".
+       "name varchar(64) NOT NULL, ".
+       "timestamp int_unsigned NOT NULL, ".
+       "PRIMARY KEY (id,name,host) ".
+       ");"
+       );
+    db_query("CREATE INDEX {login_security_track}_timestamp_idx ".
+       "ON {login_security_track} ".
+       "USING btree ".
+       "(timestamp);");
+    drupal_set_message(t('Created security table'));
+		break;
   }
 }
 
@@ -26,5 +41,14 @@ function login_security_uninstall() {
    variable_del('login_security_user_wrong_count');
    variable_del('login_security_host_wrong_count');
    variable_del('login_security_host_wrong_count_hard');
+   variable_del('login_security_notice_available_attempts');
+   variable_del('login_security_notice_attempts_message');
+   variable_del('login_security_host_soft_banned');
+   variable_del('login_security_host_hard_banned');
+   variable_del('login_security_user_blocked');
+   variable_del('login_security_user_blocked_email');
+   variable_del('login_security_user_blocked_email_subject');
+   variable_del('login_security_user_blocked_email_body');
+   variable_del('login_security_delay_increase');
    db_query("DROP TABLE {login_security_track}");
 }

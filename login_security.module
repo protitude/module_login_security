@@ -6,6 +6,7 @@
 
 define('LOGIN_SECURITY_TRACK_TIME', 0);
 define('LOGIN_SECURITY_BASE_TIME', 0);
+define('LOGIN_SECURITY_DELAY_INCREASE', 0);
 define('LOGIN_SECURITY_USER_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
@@ -17,6 +18,7 @@ define('LOGIN_SECURITY_USER_BLOCKED', "The user <em>%username</em> has been bloc
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL', FALSE);
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT', "Security action: The user %username has been blocked.");
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', "The user %username has been blocked at %site due to the amount of failed login attempts. Please check the logs for more information.");
+define('LOGIN_SECURITY_NOTICE_AVAILABLE_ATTEMPTS', 0);
 
 /**
  * @file Login Security
@@ -120,9 +122,16 @@ function login_security_build_admin_form() {
     '#default_value' => variable_get('login_security_delay_base_time', LOGIN_SECURITY_BASE_TIME),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the base time for login delay, computed as (base time) x (login attempts) for that user.'),
+    '#description' => t('Enter the base time for login delay'),
     '#field_suffix' => '<kbd>'. t('Seconds') .'</kbd>'
   );
+  $form['login_security_delay_increase'] = array(
+    '#type' => 'radios',
+    '#title' => t('Increase delay for each attempt?'),
+    '#default_value' => variable_get('login_security_delay_increase', LOGIN_SECURITY_DELAY_INCREASE),
+    '#options' => array (1 => 'Yes', 0 => 'No'),
+    '#description' => t('Computed as (base time) x (login attempts) for that user.'),
+  );  
   $form['login_security_user_wrong_count'] = array(
     '#type' => 'textfield',
     '#title' => t('Maximum number of login failures before blocking a user'),
@@ -162,7 +171,7 @@ function login_security_build_admin_form() {
   $form['login_security']['Notifications']['login_security_notice_attempts_available'] = array(
     '#type' => 'checkbox',
     '#title' => t('Notify the user after any failed login attempt'),
-    '#default_value' => variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE),
+    '#default_value' => variable_get('login_security_notice_available_attempts', LOGIN_SECURITY_NOTICE_AVAILABLE_ATTEMPTS),
     '#description' => t('Security tip: If you enable this option, try to not disclose as much of your login policies as possible in the message shown on any failed login attempt.'),
   );
   $form['login_security']['Notifications']['login_security_notice_attempts_message'] = array(
@@ -239,10 +248,11 @@ function login_security_validate($form_item) {
 
 // Start with login Delay
    if ($delay = variable_get('login_security_delay_base_time', LOGIN_SECURITY_USER_BASE_TIME)) {
-     $secs = intval($variables['%user_ip_current_count']-1) * intval($delay);
-     if ($secs >= ini_get('max_execution_time')) {
+      $secs = (variable_get('login_security_delay_increase',LOGIN_SECURITY_DELAY_INCREASE) == 1) ? intval($variables['%user_ip_current_count']-1) * intval($delay) : intval($delay);
+      if ($secs >= ini_get('max_execution_time')) {
         $secs = ini_get('max_execution_time') - 3;
      }
+
      @sleep($secs);
    }
 

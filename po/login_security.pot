@@ -71,11 +71,19 @@ msgid "Login delay base time"
 msgstr ""
 
 #: login_security.module:103
-msgid "Enter the base time for login delay, computed as (base time) x (login attempts) for that user."
+msgid "Enter the base time for login delay"
 msgstr ""
 
 #: login_security.module:104
 msgid "Seconds"
+msgstr ""
+
+#: login_security.module:0
+msgid "Computed as (base time) x (login attempts) for that user."
+msgstr ""
+
+#: login_security.module:0
+msgid "Increase delay for each attempt?"
 msgstr ""
 
 #: login_security.module:108
