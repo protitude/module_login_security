@@ -41,7 +41,7 @@ function login_security_uninstall() {
    variable_del('login_security_user_wrong_count');
    variable_del('login_security_host_wrong_count');
    variable_del('login_security_host_wrong_count_hard');
-   variable_del('login_security_notice_available_attempts');
+   variable_del('login_security_notice_attempts_available');
    variable_del('login_security_notice_attempts_message');
    variable_del('login_security_host_soft_banned');
    variable_del('login_security_host_hard_banned');
