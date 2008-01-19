@@ -1,5 +1,8 @@
 <?php 
-/* $Id$ */
+/* $Id$ */     
+/* */
+/* Drupal-6 brach */ 
+/* */          
 /* GPL published.. if you don't have a copy of the license, search for it, it's free */
 /* Copyrighted by ilo@reversing.org */
 /* Thanks to christefano for the module tips and strings */
@@ -27,8 +30,8 @@ define('LOGIN_SECURITY_NOTICE_AVAILABLE_ATTEMPTS', 0);
  /**
  * Implementation of hook_help()
  */
-function login_security_help($section) {
-  switch ($section) {
+function login_security_help($path, $arg = NULL) {
+  switch ($path) {
     case 'admin/modules#description':
       // This description is shown in the listing at admin/modules.
       return t('Adds security options to the login flow of the site.');
@@ -67,7 +70,7 @@ function login_security_user($op, &$edit, &$account, $category = NULL) {
       unset($_SESSION['messages']);
     
 //  On success login remove any temporary protection for the IP address and the username
-    db_query("DELETE FROM {login_security_track} WHERE name = '%s' and host = '%s'", check_plain($edit['name']), mip_address());
+    db_query("DELETE FROM {login_security_track} WHERE name = '%s' AND host = '%s'", check_plain($edit['name']), check_plain(ip_address()));
     break;
     case 'update': 
 //  The update case can be launched by the user or by any user administrator
@@ -81,12 +84,12 @@ function login_security_user($op, &$edit, &$account, $category = NULL) {
 /**
  * Implementation of hook_form_alter().
  */
-function login_security_form_alter($form_id, &$form) {  
+function login_security_form_alter(&$form, $form_state, $form_id) {  
   switch ($form_id) {
     case 'user_login':
     case 'user_login_block':
 //     Attach a new validatdor for the name field
-       $form['name']['#validate']['login_security_validate'] = array();
+       $form['#validate'][] = 'login_security_validate';
        break;
      case 'user_admin_settings':
        if (user_access('administer users')) {
@@ -234,15 +237,15 @@ function login_security_build_admin_form() {
  *   The status of the name field in the form field after being submitted by the user.
  *
  */
-function login_security_validate($form_item) {
+function login_security_validate($form_values) {
 // Sanitize user input
-   $name = check_plain($form_item['#value']);
+   $name = check_plain($form_values['name']['#value']);
 // Null username should not be tracked   
    if (!strlen($name)) return;
 
 // Save entry in security log, Username and IP Address
-   login_security_save_pair($name, mip_address());   
-
+   login_security_save_pair($name, check_plain(ip_address()));   
+ 
 // Populate variables to be used in any module message or login operation
    $variables = _login_security_get_variables_by_name($name);
 
@@ -259,7 +262,7 @@ function login_security_validate($form_item) {
 // Check for host login attempts: Hard
    if ($variables['%hard_block_attempts'] >= 1) {
      if ($variables['%ip_current_count'] > $variables['%hard_block_attempts']) {
-//      block the host mip_address()
+//      block the host check_plain(ip_address())
         login_user_block_ip($variables);
      }
    }
@@ -311,7 +314,7 @@ function login_security_save_pair($name, $ip) {
  */
 function login_user_block_ip($variables) {
   db_query("INSERT INTO {access} (mask, type, status) VALUES ('%s', '%s', %d)", $variables['%ip'], 'host', 0);
-  watchdog('security', t('Banned IP address %ip because of login security configuration', $variables));
+  watchdog('login_security', 'Banned IP address %ip because of login security configuration', $variables, WATCHDOG_NOTICE);
   form_set_error('void', t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), $variables ));
 }
 
@@ -333,7 +336,7 @@ function login_user_block_user_name($variables) {
     user_save($account, array('status' => 0), NULL); 
 //  remove user from site now.
     sess_destroy_uid($uid);
-    watchdog('security', t('Blocked user %name: with id %uid due to security configuration', $variables));
+    watchdog('login_security', 'Blocked user %name: with id %uid due to security configuration', $variables, WATCHDOG_NOTEICE);
 
 //  Send admin email
     if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL) ) {
@@ -356,7 +359,7 @@ function login_user_block_user_name($variables) {
  */
 function _login_security_get_variables_by_name($name) {
   $account = user_load(array("name" => $name));
-  $ipaddress = mip_address();
+  $ipaddress = check_plain(ip_address());
   global $base_url;
   $variables = array(
     '%date' => format_date(time()),
@@ -366,11 +369,11 @@ function _login_security_get_variables_by_name($name) {
     '%uid' => $account->uid,
     '%site' => variable_get('site_name', 'drupal'),
     '%uri' => $base_url,
-    '%edit_uri' => url('user/'. $account->uid .'/edit', NULL, NULL, TRUE),
+//    '%edit_uri' => url('user/'. $account->uid .'/edit', NULL, NULL, TRUE),
     '%hard_block_attempts' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
     '%soft_block_attempts' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
     '%user_block_attempts' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
-    '%user_ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s' and host = '%s'", $name, $ipaddress)),
+    '%user_ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s' AND host = '%s'", $name, $ipaddress)),
     '%ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", $ipaddress)),
     '%user_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s'", $name)),
     '%tracking_time' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
@@ -380,19 +383,3 @@ function _login_security_get_variables_by_name($name) {
 
 
 
-/**
- * Helper function to get the IP Address viewing the page.
- */
-function mip_address() {
-  static $ip_address = NULL;
-
-  if (!isset($ip_address)) {
-    $ip_address = $_SERVER['REMOTE_ADDR'];
-    if (variable_get('reverse_proxy', 0) && array_key_exists('HTTP_X_FORWARDED_FOR', $_SERVER)) {
-      // If there are several arguments, we need to check the most
-      // recently added one, ie the last one.
-      $ip_address = array_pop(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']));
-    }
-  }
-  return check_plain($ip_address);
-}

@@ -2,36 +2,56 @@
 // $Id$
 
 function login_security_install() {
-  switch ($GLOBALS['db_type']) {
-  case 'mysql':
-  case 'mysqli':
-    db_query("CREATE TABLE {login_security_track} (".
-       "id int unsigned NOT NULL auto_increment, ".
-       "host varchar(15) NOT NULL, ".
-       "name varchar(64) NOT NULL, ".
-       "timestamp int(11) unsigned NOT NULL, ".
-       "PRIMARY KEY (id,name,host), ".
-       "INDEX (timestamp) ".
-       ") /*!40100 DEFAULT CHARACTER SET utf8 */;"
-       );
-    drupal_set_message(t('Created security table'));    
-    break;
-  case 'pgsql':
-		db_query("CREATE TABLE {login_security_track} (".
-       "id serial NOT NULL, ".
-       "host varchar(15) NOT NULL, ".
-       "name varchar(64) NOT NULL, ".
-       "timestamp int_unsigned NOT NULL, ".
-       "PRIMARY KEY (id,name,host) ".
-       ");"
-       );
-    db_query("CREATE INDEX {login_security_track}_timestamp_idx ".
-       "ON {login_security_track} ".
-       "USING btree ".
-       "(timestamp);");
-    drupal_set_message(t('Created security table'));
-		break;
-  }
+  drupal_set_message(t('Installing security options'));
+  // Create tables.
+  drupal_install_schema('login_security_track');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function login_security_track_schema() {
+  $schema['login_security_track'] = array(
+  'description' => t('Keeps track of failed login attempts and the associated IP address and user name.'),
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => t("Hidden Id for each security event."),
+      ),
+      'host' => array(
+        'type' => 'varchar',
+        'length' => 15,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t("The ip address of the connection."),
+      ),
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => t("The book ID is the {book}.nid of the top-level page."),
+      ),
+      'timestamp' => array(
+        'type' => 'int',
+        'length' => 11,
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => t("The book ID is the {book}.nid of the top-level page."),
+      ),
+    ),
+    'indexes' => array(
+      'id'     => array('id'),
+      'name'     => array('name'),
+      'host'     => array('host')
+    ),
+    'primary key' => array('timestamp')
+  );
+
+  return $schema;
 }
 
 function login_security_uninstall() {
@@ -50,5 +70,6 @@ function login_security_uninstall() {
    variable_del('login_security_user_blocked_email_subject');
    variable_del('login_security_user_blocked_email_body');
    variable_del('login_security_delay_increase');
-   db_query("DROP TABLE {login_security_track}");
+   // Remove tables.
+   drupal_uninstall_schema('login_security_track');
 }

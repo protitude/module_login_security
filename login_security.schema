@@ -1,0 +1,20 @@
+<?php
+// $Id$
+
+function login_security_track_schema() {
+  $schema['login_security_track'] = array(
+    'fields' => array(
+      'id' =>   array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE),
+      'host' => array('type' => 'varchar', 'length' => 15, 'not null' => TRUE, 'default' => ''),
+      'name' => array('type' => 'varchar','length' => 64,'not null' => TRUE,'default' => ''),
+      'timestamp' => array( 'type' => 'int', 'length' => 11, 'unsigned' => TRUE, 'not null' => TRUE, 'default' => 0 ),
+    ),
+    'indexes' => array(
+      'id'     => array('id'),
+      'name'     => array('name'),
+      'host'     => array('host')
+    ),
+    'primary key' => array('timestamp')
+  );
+  return $schema;
+}
