@@ -22,7 +22,7 @@ function login_security_track_schema() {
       ),
       'host' => array(
         'type' => 'varchar',
-        'length' => 15,
+        'length' => 39,
         'not null' => TRUE,
         'default' => '',
         'description' => t("The ip address of the connection."),
@@ -44,9 +44,9 @@ function login_security_track_schema() {
       ),
     ),
     'indexes' => array(
-      'id'     => array('id'),
-      'name'     => array('name'),
-      'host'     => array('host')
+      'id' => array('id'),
+      'name' => array('name'),
+      'host' => array('host')
     ),
     'primary key' => array('timestamp')
   );
@@ -54,22 +54,62 @@ function login_security_track_schema() {
   return $schema;
 }
 
+/**
+ * Support IPv6 length addresses.
+ *
+ * @return array
+ */
+function login_security_update_5000() {
+  $ret = array();
+  switch ($GLOBALS['db_type']) {
+  case 'mysql':
+  case 'mysqli':
+    $ret[] = update_sql("ALTER TABLE {login_security_track} CHANGE host host VARCHAR(39) NOT NULL");
+    break;
+  }
+  return $ret;
+}
+
+/**
+ * Support IPv6 length addresses in 6.x because the original 6.x
+ * didn't have this update function. Since it's redundant from the
+ * previous update function, it's mostly just helping support PostgreSQL.
+ *
+ * @return array
+ */
+function login_security_update_6000() {
+  $ret = array();
+  db_drop_index($ret, 'login_security_track', 'host');
+  db_change_field($ret, 'login_security_track', 'host', 'host', array(
+    'type' => 'varchar',
+    'length' => 39,
+    'not null' => TRUE,
+    'default' => '',
+    'description' => t("The ip address of the connection."),
+    )
+  );
+  db_add_index($ret, 'login_security_track', 'host', array('host'));
+  return $ret;
+}
+
 function login_security_uninstall() {
-   drupal_set_message(t('Removing security options'));
-   variable_del('login_security_track_time');
-   variable_del('login_security_delay_base_time');
-   variable_del('login_security_user_wrong_count');
-   variable_del('login_security_host_wrong_count');
-   variable_del('login_security_host_wrong_count_hard');
-   variable_del('login_security_notice_attempts_available');
-   variable_del('login_security_notice_attempts_message');
-   variable_del('login_security_host_soft_banned');
-   variable_del('login_security_host_hard_banned');
-   variable_del('login_security_user_blocked');
-   variable_del('login_security_user_blocked_email');
-   variable_del('login_security_user_blocked_email_subject');
-   variable_del('login_security_user_blocked_email_body');
-   variable_del('login_security_delay_increase');
-   // Remove tables.
-   drupal_uninstall_schema('login_security_track');
+  drupal_set_message(t('Removing security options'));
+  variable_del('login_security_track_time');
+  variable_del('login_security_delay_base_time');
+  variable_del('login_security_user_wrong_count');
+  variable_del('login_security_host_wrong_count');
+  variable_del('login_security_host_wrong_count_hard');
+  variable_del('login_security_notice_attempts_available');
+  variable_del('login_security_notice_attempts_message');
+  variable_del('login_security_host_soft_banned');
+  variable_del('login_security_host_hard_banned');
+  variable_del('login_security_user_blocked');
+  variable_del('login_security_user_blocked_email');
+  variable_del('login_security_user_blocked_email_subject');
+  variable_del('login_security_user_blocked_email_body');
+  variable_del('login_security_delay_increase');
+  variable_del('login_security_last_login_timestamp');
+  variable_del('login_security_last_access_timestamp');
+  // Remove tables.
+  drupal_uninstall_schema('login_security_track');
 }
