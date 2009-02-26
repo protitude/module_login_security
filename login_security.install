@@ -1,9 +1,10 @@
 <?php
 // $Id$
 
+/**
+ * Implementation of hook_install().
+ */
 function login_security_install() {
-  drupal_set_message(t('Installing security options'));
-  // Create tables.
   drupal_install_schema('login_security_track');
 }
 
@@ -16,7 +17,6 @@ function login_security_track_schema() {
     'fields' => array(
       'id' => array(
         'type' => 'serial',
-        'unsigned' => TRUE,
         'not null' => TRUE,
         'description' => t("Hidden Id for each security event."),
       ),
@@ -36,8 +36,6 @@ function login_security_track_schema() {
       ),
       'timestamp' => array(
         'type' => 'int',
-        'length' => 11,
-        'unsigned' => TRUE,
         'not null' => TRUE,
         'default' => 0,
         'description' => t("The book ID is the {book}.nid of the top-level page."),
@@ -85,15 +83,17 @@ function login_security_update_6000() {
     'length' => 39,
     'not null' => TRUE,
     'default' => '',
-    'description' => t("The ip address of the connection."),
+    'description' => t("The IP address of the connection."),
     )
   );
   db_add_index($ret, 'login_security_track', 'host', array('host'));
   return $ret;
 }
 
+/**
+ * Implementation of hook_uninstall().
+ */
 function login_security_uninstall() {
-  drupal_set_message(t('Removing security options'));
   variable_del('login_security_track_time');
   variable_del('login_security_delay_base_time');
   variable_del('login_security_user_wrong_count');
@@ -110,6 +110,6 @@ function login_security_uninstall() {
   variable_del('login_security_delay_increase');
   variable_del('login_security_last_login_timestamp');
   variable_del('login_security_last_access_timestamp');
-  // Remove tables.
+
   drupal_uninstall_schema('login_security_track');
 }
