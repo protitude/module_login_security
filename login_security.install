@@ -2,16 +2,22 @@
 // $Id$
 
 /**
+ * @file
+ * Login Security installation routines
+ *
+ */
+
+/**
  * Implementation of hook_install().
  */
 function login_security_install() {
-  drupal_install_schema('login_security_track');
+  drupal_install_schema('login_security');
 }
 
 /**
  * Implementation of hook_schema().
  */
-function login_security_track_schema() {
+function login_security_schema() {
   $schema['login_security_track'] = array(
   'description' => t('Keeps track of failed login attempts and the associated IP address and user name.'),
     'fields' => array(
@@ -32,21 +38,21 @@ function login_security_track_schema() {
         'length' => 64,
         'not null' => TRUE,
         'default' => '',
-        'description' => t("The book ID is the {book}.nid of the top-level page."),
+        'description' => t("Username used in the login ."),
       ),
       'timestamp' => array(
         'type' => 'int',
         'not null' => TRUE,
         'default' => 0,
-        'description' => t("The book ID is the {book}.nid of the top-level page."),
+        'description' => t("Timestamp of the event."),
       ),
     ),
     'indexes' => array(
-      'id' => array('id'),
       'name' => array('name'),
-      'host' => array('host')
+      'host' => array('host'),
+      'timestamp' => array('timestamp'),
     ),
-    'primary key' => array('timestamp')
+    'primary key' => array('id')
   );
 
   return $schema;
@@ -91,6 +97,38 @@ function login_security_update_6000() {
 }
 
 /**
+ * Database clean up update as for #399390
+ * http://drupal.org/node/399390
+ *
+ * Change current primary key to 'id' and add timestamp index
+ *
+ * @return array
+ */
+function login_security_update_6001() {
+  $ret = array();
+  db_drop_primary_key($ret, 'login_security_track');
+  db_add_primary_key($ret, 'login_security_track', array('id'));
+  db_drop_index($ret, 'login_security_track', 'id');
+  db_add_index($ret, 'login_security_track', 'timestamp', array('timestamp'));
+  db_change_field($ret, 'login_security_track', 'name', 'name', array(
+      'type' => 'varchar',
+      'length' => 64,
+      'not null' => TRUE,
+      'default' => '',
+      'description' => t("Username used in the login submission."),
+    )
+  );
+  db_change_field($ret, 'login_security_track', 'timestamp', 'timestamp', array(
+      'type' => 'int',
+      'not null' => TRUE,
+      'default' => 0,
+      'description' => t("Timestamp of the event."),
+    )
+  );
+  return $ret;
+}
+
+/**
  * Implementation of hook_uninstall().
  */
 function login_security_uninstall() {
@@ -111,5 +149,5 @@ function login_security_uninstall() {
   variable_del('login_security_last_login_timestamp');
   variable_del('login_security_last_access_timestamp');
 
-  drupal_uninstall_schema('login_security_track');
+  drupal_uninstall_schema('login_security');
 }

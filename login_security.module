@@ -270,7 +270,7 @@ function login_security_validate($form_values) {
   }
 
   // Save entry in security log, Username and IP Address
-  login_security_save_pair($name, check_plain(ip_address()));
+  _login_security_add_event($name, check_plain(ip_address()));
 
   // Populate variables to be used in any module message or login operation
   $variables = _login_security_get_variables_by_name($name);
@@ -326,10 +326,14 @@ function login_security_validate($form_values) {
  * @param $ip
  *   IP Address of the pair.
  */
-function login_security_save_pair($name, $ip) {
-  // Each fail attempt is kept for future minning of advanced bruteforcing
-  // like multiple IP or X-Forwarded-for usage and automated track data cleanup
-  db_query("INSERT INTO {login_security_track} (name, host, timestamp) VALUES ('%s', '%s', %d)", $name, $ip, time());
+function _login_security_add_event($name, $ip) {
+//Each attempt is kept for future minning of advanced bruteforcing like multiple
+//IP or X-Forwarded-for usage and automated track data cleanup
+  $event = new stdClass();
+  $event->host = $ip;
+  $event->name = $name;
+  $event->timestamp = time();
+  drupal_write_record('login_security_track', $event);
 }
 
 /**
@@ -339,7 +343,11 @@ function login_security_save_pair($name, $ip) {
  *   Optional. Add a deny rule in the access control to this IP Address.
  */
 function login_user_block_ip($variables) {
-  db_query("INSERT INTO {access} (mask, type, status) VALUES ('%s', '%s', %d)", $variables['%ip'], 'host', 0);
+  $block = new stdClass();
+  $block->mask = $variables['%ip'];
+  $block->type = 'host';
+  $block->status = 0;
+  drupal_write_record('access', $block);
   watchdog('login_security', 'Banned IP address %ip because of login security configuration', $variables, WATCHDOG_NOTICE);
   form_set_error('void', t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), $variables));
 }
