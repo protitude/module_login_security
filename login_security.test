@@ -1,0 +1,124 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ * Test the basic functions of the Login Security module.
+ */
+
+class LoginSecurityInterfaceTest extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => t('Login Security interface'),
+      'description' => t('Test Login Security\'s web interface.'),
+      'group' => t('Login Security')
+    );
+  }
+
+  function setUp() {
+    parent::setUp('login_security');
+
+    // Create and login user
+    $admin_user = $this->drupalCreateUser(array('administer users'));
+    $this->drupalLogin($admin_user);
+  }
+
+  function testAdminUserSettings() {
+    $this->drupalGet('admin/user/settings');
+    $this->assertResponse(200, t('Access granted to settings page.'));
+    $this->assertField('login_security_track_time', t('Track time field exists.'));
+    $this->assertField('login_security_delay_base_time', t('Delay base time field exists.'));
+    $this->assertField('login_security_delay_increase', t('Delay increase field exists.'));
+    $this->assertField('login_security_user_wrong_count', t('User wrong count field exists.'));
+    $this->assertField('login_security_host_wrong_count', t('Host wrong count field exists.'));
+    $this->assertField('login_security_host_wrong_count_hard', t('Host wrong hard count field exists.'));
+    $this->assertField('login_security_notice_attempts_available', t('Notice attempts available field exists.'));
+    $this->assertField('login_security_notice_attempts_message', t('Notice attempts message field exists.'));
+    $this->assertField('login_security_host_soft_banned', t('Soft banned message field exists.'));
+    $this->assertField('login_security_host_hard_banned', t('Hard banned message field exists.'));
+    $this->assertField('login_security_user_blocked', t('User blocked message field exists.'));
+    $this->assertField('login_security_user_blocked_email', t('User blocked email toggle field exists.'));
+    $this->assertField('login_security_user_blocked_email_subject', t('User blocked email subject field exists.'));
+    $this->assertField('login_security_user_blocked_email_body', t('User blocked email body field exists'));
+    $this->assertField('login_security_last_login_timestamp', t('Last login timestamp field exists.'));
+    $this->assertField('login_security_last_access_timestamp', t('Last access timestamp field exists.'));
+  }
+}
+
+class LoginSecurityFunctionalTest extends DrupalWebTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => t('Login Security functional'),
+      'description' => t('Test Login Security\'s login restrictions.'),
+      'group' => t('Login Security')
+    );
+  }
+
+  function setUp() {
+    parent::setUp('login_security');
+  }
+
+  function testLogin() {
+    variable_set('login_security_user_wrong_count', 5);
+    $normal_user = $this->drupalCreateUser(array('access content'));
+    $this->drupalLogin($normal_user);
+    $this->assertResponse(200, t('Use was able to login.'));
+    $this->assertNoText("You have used 1 out of 5 login attempts. After all 5 have been used, you will be unable to login.", t('Attempts available message displayed.'));
+    $this->drupalGet('logout');
+  }
+
+  function testUserBlocking() {
+    $login_attempts_limit = 2;
+
+    // allow 3 attempts to login before being blocking is enforced
+    variable_set('login_security_user_wrong_count', $login_attempts_limit);
+
+    // in Drupal 7, we can drupalGetMails() to see if a notice went out to admin
+    // in the meantime, turn the message off just in case it doesn't get caught properly yet
+    variable_set('login_security_user_blocked_email', 0);
+
+    $normal_user = $this->drupalCreateUser(array('access content'));
+
+    // intentionally break the password to repeat invalid logins
+    $normal_user->pass_raw = user_password();
+
+    variable_set('login_security_notice_attempts_available', 1);
+
+    // drupalLogin() has assertions that we know will fail, so we must skip them with an alternate function
+    $this->drupalLoginLite($normal_user);
+    $this->assertResponse(200, t('Login page reloaded.'));
+    $this->assertText("You have used 1 out of $login_attempts_limit login attempts. After all $login_attempts_limit have been used, you will be unable to login.", t('Attempts available message displayed.'));
+    $this->assertFieldByName('form_id', 'user_login', t('Login form found.'));
+
+    // turns off the warning message we looked for in the previous assert
+    variable_set('login_security_notice_attempts_available', 0);
+
+    $this->drupalLoginLite($normal_user);
+    $this->assertResponse(200, t('Login page reloaded.'));
+    $this->assertNoText("You have used 2 out of $login_attempts_limit login attempts. After all $login_attempts_limit have been used, you will be unable to login.", t('Attempts available message displayed.'));
+    $this->assertFieldByName('form_id', 'user_login', t('Login form found.'));
+
+    // turns back on the warning message we looked for in the previous assert
+    variable_set('login_security_notice_attempts_available', 1);
+
+    $this->drupalLoginLite($normal_user);
+    $this->assertResponse(200, t('Login page reloaded.'));
+    $this->assertText("The user {$normal_user->name} has been blocked due to failed login attempts.", t('Blocked message displayed.'));
+    $this->assertText("You have used 3 out of $login_attempts_limit login attempts. After all $login_attempts_limit have been used, you will be unable to login.", t('Attempts available message displayed.'));
+    $this->assertFieldByName('form_id', 'user_login', t('Login form found.'));
+  }
+
+  function drupalLoginLite(stdClass $user) {
+    if ($this->isLoggedIn) {
+      $this->drupalLogout();
+    }
+
+    $edit = array(
+      'name' => $user->name,
+      'pass' => $user->pass_raw
+    );
+    $this->drupalPost('user', $edit, t('Log in'));
+
+    $this->isLoggedIn = TRUE;
+  }
+}

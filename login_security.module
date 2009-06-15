@@ -31,7 +31,7 @@ define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', "The user %username (%edit_uri)
 function login_security_cron() {
   // calc expiring time of login security tracked entries
   $time = time() - (variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME) * 3600);
-    db_query("DELETE FROM {login_security_track} WHERE timestamp < '%d'", $time);
+  db_query("DELETE FROM {login_security_track} WHERE timestamp < %d", $time);
   return;
 }
 
@@ -60,22 +60,6 @@ function login_security_user($op, &$edit, &$account, $category = NULL) {
         drupal_set_message(t('Your last page access (site activity) was !stamp', array('!stamp' => format_date($login_security_last_access, 'large'))));
       }
 
-      // Remove any notice message.. Damm.. I have to add more code to clean the message than to work for security :D
-      if ((variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE)) && (isset($_SESSION['messages']['status']))) {
-        foreach ($_SESSION['messages']['status'] as $mid => $mstr) {
-          if (drupal_substr($mstr, 0, 23) == "<!-- login_security -->") {
-            unset($_SESSION['messages']['status'][$mid]);
-          }
-        }
-      }
-      // clean the messages queue..
-      if (!count($_SESSION['messages']['status'])) {
-        unset($_SESSION['messages']['status']);
-      }
-      if (!count($_SESSION['messages'])) {
-        unset($_SESSION['messages']);
-      }
-
       // On success login remove any temporary protection for the IP address and the username
       db_query("DELETE FROM {login_security_track} WHERE name = '%s' AND host = '%s'", check_plain($edit['name']), check_plain(ip_address()));
       break;
@@ -84,7 +68,7 @@ function login_security_user($op, &$edit, &$account, $category = NULL) {
       // On update, remove only the unser information tracked
       db_query("DELETE FROM {login_security_track} WHERE name = '%s'", check_plain($edit['name']));
       break;
-      // Cron will clean the forgotten tracking entries, including the deleted users's.
+      // Cron will clean the forgotten tracking entries, including the deleted users.
   }
 }
 
@@ -95,7 +79,7 @@ function login_security_form_alter(&$form, $form_state, $form_id) {
   switch ($form_id) {
     case 'user_login':
     case 'user_login_block':
-      // Attach a new validatdor for the name field
+      // Attach a new validator for the name field
       $form['#validate'][] = 'login_security_validate';
       break;
     case 'user_admin_settings':
@@ -261,9 +245,9 @@ function login_security_build_admin_form() {
  *   The status of the name field in the form field after being submitted by the user.
  *
  */
-function login_security_validate($form_values) {
+function login_security_validate($form, &$form_state) {
   // Sanitize user input
-  $name = check_plain($form_values['name']['#value']);
+  $name = check_plain($form_state['values']['name']);
   // Null username should not be tracked
   if (!strlen($name)) {
     return;
@@ -296,7 +280,11 @@ function login_security_validate($form_values) {
   // Check for host login attempts: Soft
   if ($variables['%soft_block_attempts'] >= 1) {
     if ($variables['%ip_current_count'] > $variables['%soft_block_attempts']) {
-      form_set_error('submit', t(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), $variables));
+      // this loop is instead of doing t() because t() can only translate static strings, not variables.
+      foreach ($variables as $key => $value) {
+        $variables[$key] = theme('placeholder', $value);
+      }
+      form_set_error('submit', strtr(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), $variables));
       drupal_goto(drupal_get_destination());
     }
   }
@@ -312,7 +300,14 @@ function login_security_validate($form_values) {
   // Should the user be advised about the remaining login attempts?
   $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
   if ($notice_user == TRUE) {
-    drupal_set_message( "<!-- login_security -->" . t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables));
+    $account = user_load(array('name' => $form_state['values']['name'], 'pass' => trim($form_state['values']['pass']), 'status' => 1));
+    if (!$account) {
+      // this loop is instead of doing t() because t() can only translate static strings, not variables.
+      foreach ($variables as $key => $value) {
+        $variables[$key] = theme('placeholder', $value);
+      }
+      drupal_set_message(strtr(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables));
+    }
   }
 
 }
@@ -348,7 +343,7 @@ function login_user_block_ip($variables) {
   $block->type = 'host';
   $block->status = 0;
   drupal_write_record('access', $block);
-  watchdog('login_security', 'Banned IP address %ip because of login security configuration', $variables, WATCHDOG_NOTICE);
+  watchdog('login_security', 'Banned IP address %ip because of login security configuration.', $variables, WATCHDOG_NOTICE);
   form_set_error('void', t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), $variables));
 }
 
@@ -370,7 +365,7 @@ function login_user_block_user_name($variables) {
     user_save($account, array('status' => 0), NULL);
     // remove user from site now.
     sess_destroy_uid($uid);
-    watchdog('login_security', 'Blocked user %name: with id %uid due to security configuration', $variables, WATCHDOG_NOTICE);
+    watchdog('user', 'Blocked user %name: with id %uid due to security configuration.', $variables, WATCHDOG_NOTICE);
 
     // Send admin email
     if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL)) {
@@ -379,7 +374,7 @@ function login_user_block_user_name($variables) {
       $subject = strtr(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
       $body = strtr(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
 
-      return drupal_mail('login_security', 'notify', $admin_mail, language_default(), $from, $headers, TRUE);
+      return drupal_mail('login_security', 'notify', $admin_mail, language_default(), $variables, $from, TRUE);
     }
   }
 }
@@ -400,7 +395,7 @@ function _login_security_get_variables_by_name($name) {
     '%uid' => $account->uid,
     '%site' => variable_get('site_name', 'drupal'),
     '%uri' => $base_url,
-//    '%edit_uri' => url('user/'. $account->uid .'/edit', NULL, NULL, TRUE),
+    '%edit_uri' => url('user/'. $account->uid .'/edit', array('absolute' => TRUE)),
     '%hard_block_attempts' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
     '%soft_block_attempts' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
     '%user_block_attempts' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
@@ -413,12 +408,10 @@ function _login_security_get_variables_by_name($name) {
 }
 
 function login_security_mail($key, &$message, $variables) {
-  $language = language_default();
   switch ($key) {
-    case 'notice':
-      $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE uid = 1"));
-      $message['subject'] = strtr(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables, $language->language);
-      $message['body'] = strtr(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables, $language->language);
+    case 'notify':
+      $message['subject'] = strtr(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
+      $message['body'] = strtr(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
       break;
   }
 }

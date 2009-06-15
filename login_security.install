@@ -4,15 +4,7 @@
 /**
  * @file
  * Login Security installation routines
- *
  */
-
-/**
- * Implementation of hook_install().
- */
-function login_security_install() {
-  drupal_install_schema('login_security');
-}
 
 /**
  * Implementation of hook_schema().
@@ -24,7 +16,7 @@ function login_security_schema() {
       'id' => array(
         'type' => 'serial',
         'not null' => TRUE,
-        'description' => t("Hidden Id for each security event."),
+        'description' => t("Hidden ID for each security event."),
       ),
       'host' => array(
         'type' => 'varchar',
@@ -38,7 +30,7 @@ function login_security_schema() {
         'length' => 64,
         'not null' => TRUE,
         'default' => '',
-        'description' => t("Username used in the login ."),
+        'description' => t("Username used in the login."),
       ),
       'timestamp' => array(
         'type' => 'int',
@@ -59,25 +51,41 @@ function login_security_schema() {
 }
 
 /**
- * Support IPv6 length addresses.
- *
- * @return array
+ * Implementation of hook_install().
  */
-function login_security_update_5000() {
-  $ret = array();
-  switch ($GLOBALS['db_type']) {
-  case 'mysql':
-  case 'mysqli':
-    $ret[] = update_sql("ALTER TABLE {login_security_track} CHANGE host host VARCHAR(39) NOT NULL");
-    break;
-  }
-  return $ret;
+function login_security_install() {
+  drupal_install_schema('login_security');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function login_security_uninstall() {
+  variable_del('login_security_track_time');
+  variable_del('login_security_delay_base_time');
+  variable_del('login_security_user_wrong_count');
+  variable_del('login_security_host_wrong_count');
+  variable_del('login_security_host_wrong_count_hard');
+  variable_del('login_security_notice_attempts_available');
+  variable_del('login_security_notice_attempts_message');
+  variable_del('login_security_host_soft_banned');
+  variable_del('login_security_host_hard_banned');
+  variable_del('login_security_user_blocked');
+  variable_del('login_security_user_blocked_email');
+  variable_del('login_security_user_blocked_email_subject');
+  variable_del('login_security_user_blocked_email_body');
+  variable_del('login_security_delay_increase');
+  variable_del('login_security_last_login_timestamp');
+  variable_del('login_security_last_access_timestamp');
+
+  drupal_uninstall_schema('login_security');
 }
 
 /**
  * Support IPv6 length addresses in 6.x because the original 6.x
  * didn't have this update function. Since it's redundant from the
  * previous update function, it's mostly just helping support PostgreSQL.
+ * Because update_5000() was the same, without schema, it was removed.
  *
  * @return array
  */
@@ -107,9 +115,7 @@ function login_security_update_6000() {
 function login_security_update_6001() {
   $ret = array();
   db_drop_primary_key($ret, 'login_security_track');
-  db_add_primary_key($ret, 'login_security_track', array('id'));
   db_drop_index($ret, 'login_security_track', 'id');
-  db_add_index($ret, 'login_security_track', 'timestamp', array('timestamp'));
   db_change_field($ret, 'login_security_track', 'name', 'name', array(
       'type' => 'varchar',
       'length' => 64,
@@ -125,29 +131,7 @@ function login_security_update_6001() {
       'description' => t("Timestamp of the event."),
     )
   );
+  db_add_primary_key($ret, 'login_security_track', array('id'));
+  db_add_index($ret, 'login_security_track', 'timestamp', array('timestamp'));
   return $ret;
-}
-
-/**
- * Implementation of hook_uninstall().
- */
-function login_security_uninstall() {
-  variable_del('login_security_track_time');
-  variable_del('login_security_delay_base_time');
-  variable_del('login_security_user_wrong_count');
-  variable_del('login_security_host_wrong_count');
-  variable_del('login_security_host_wrong_count_hard');
-  variable_del('login_security_notice_attempts_available');
-  variable_del('login_security_notice_attempts_message');
-  variable_del('login_security_host_soft_banned');
-  variable_del('login_security_host_hard_banned');
-  variable_del('login_security_user_blocked');
-  variable_del('login_security_user_blocked_email');
-  variable_del('login_security_user_blocked_email_subject');
-  variable_del('login_security_user_blocked_email_body');
-  variable_del('login_security_delay_increase');
-  variable_del('login_security_last_login_timestamp');
-  variable_del('login_security_last_access_timestamp');
-
-  drupal_uninstall_schema('login_security');
 }
