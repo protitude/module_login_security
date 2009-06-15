@@ -23,7 +23,7 @@ msgstr ""
 #default messages
 
 #: login_security.module:1
-msgid "You have used %ip_current_count out of %hard_block_attempts login attempts. After all %hard_block_attempts have been used, you will be unable to login for %tracking_time hour(s)."
+msgid "You have used %ip_current_count out of %soft_block_attempts login attempts. After all %soft_block_attempts have been used, you will be unable to login for %tracking_time hour(s)."
 msgstr ""
 
 #: login_security.module:2
