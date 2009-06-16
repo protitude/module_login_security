@@ -62,9 +62,7 @@ class LoginSecurityFunctionalTest extends DrupalWebTestCase {
     variable_set('login_security_user_wrong_count', 5);
     $normal_user = $this->drupalCreateUser(array('access content'));
     $this->drupalLogin($normal_user);
-    $this->assertResponse(200, t('Use was able to login.'));
     $this->assertNoText("You have used 1 out of 5 login attempts. After all 5 have been used, you will be unable to login.", t('Attempts available message displayed.'));
-    $this->drupalGet('logout');
   }
 
   function testUserBlocking() {
@@ -106,6 +104,39 @@ class LoginSecurityFunctionalTest extends DrupalWebTestCase {
     $this->assertText("The user {$normal_user->name} has been blocked due to failed login attempts.", t('Blocked message displayed.'));
     $this->assertText("You have used 3 out of $login_attempts_limit login attempts. After all $login_attempts_limit have been used, you will be unable to login.", t('Attempts available message displayed.'));
     $this->assertFieldByName('form_id', 'user_login', t('Login form found.'));
+  }
+
+  function testLoginMessage() {
+    $normal_user = $this->drupalCreateUser(array('access content'));
+
+    // even if the messages are turned on, they should not display for a first login
+    variable_set('login_security_last_login_timestamp', 1);
+    variable_set('login_security_last_access_timestamp', 1);
+    $this->drupalLogin($normal_user);
+    $this->assertNoText(t('Your last login was '), t('Last login message not found.'));
+    $this->assertNoText(t('Your last page access (site activity) was '), t('Last page access message not found.'));
+
+    variable_set('login_security_last_login_timestamp', 0);
+    variable_set('login_security_last_access_timestamp', 0);
+    $this->drupalLogin($normal_user);
+    $this->assertNoText(t('Your last login was '), t('Last login message not found.'));
+    $this->assertNoText(t('Your last page access (site activity) was '), t('Last page access message not found.'));
+
+    variable_set('login_security_last_login_timestamp', 1);
+    $this->drupalLogin($normal_user);
+    $this->assertText(t('Your last login was '), t('Last login message found.'));
+    $this->assertNoText(t('Your last page access (site activity) was '), t('Last page access message not found.'));
+
+    variable_set('login_security_last_login_timestamp', 0);
+    variable_set('login_security_last_access_timestamp', 1);
+    $this->drupalLogin($normal_user);
+    $this->assertNoText(t('Your last login was '), t('Last login message not found.'));
+    $this->assertText(t('Your last page access (site activity) was '), t('Last page access message found.'));
+
+    variable_set('login_security_last_login_timestamp', 1);
+    $this->drupalLogin($normal_user);
+    $this->assertText(t('Your last login was '), t('Last login message found.'));
+    $this->assertText(t('Your last page access (site activity) was '), t('Last page access message found.'));
   }
 
   function drupalLoginLite(stdClass $user) {
