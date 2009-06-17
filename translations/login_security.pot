@@ -119,7 +119,7 @@ msgid "Edit notifications"
 msgstr ""
 
 #: login_security.module:144
-msgid "Notify the user after any failed login attempt"
+msgid "Notify the user about the number of remaining login attempts"
 msgstr ""
 
 #: login_security.module:146
