@@ -16,6 +16,7 @@ define('LOGIN_SECURITY_DELAY_INCREASE', 0);
 define('LOGIN_SECURITY_USER_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
+define('LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR', 0);
 define('LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE', 0);
 define('LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE', "You have used %user_current_count out of %user_block_attempts login attempts. After all %user_block_attempts have been used, you will be unable to login.");
 define('LOGIN_SECURITY_HOST_SOFT_BANNED', "This host is not allowed to log in to %site. Please contact your site administrator.");
@@ -163,9 +164,15 @@ function login_security_build_admin_form() {
     '#description' => t("Allowed placeholders for notifications include the following: %date, %ip, %username, %email, %uid, %site, %uri, %edit_uri, %hard_block_attempts, %soft_block_attempts, %user_block_attempts, %user_ip_current_count, %ip_current_count, %user_current_count, %tracking_time")
   );
 
+  $form['login_security']['Notifications']['login_security_disable_core_login_error'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Disable login failure error message'),
+    '#description' => t('Sorry, unrecognized username or password. Have you forgotten your password?'),
+    '#default_value' => variable_get('login_security_disable_core_login_error', LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR)
+  );
   $form['login_security']['Notifications']['login_security_notice_attempts_available'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Notify the user after any failed login attempt'),
+    '#title' => t('Notify the user about the number of remaining login attempts'),
     '#default_value' => variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE),
     '#description' => t('Security tip: If you enable this option, try to not disclose as much of your login policies as possible in the message shown on any failed login attempt.'),
   );
@@ -297,6 +304,16 @@ function login_security_validate($form, &$form_state) {
     }
   }
 
+  if (variable_get('login_security_disable_core_login_error', LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR)) {
+    // resets the form error status so no form fields are highlighted in red
+    form_set_error(NULL, '', TRUE);
+
+    // removes "Sorry, unrecognized username or password. Have you forgotten your password?"
+    // and any other errors that might be helpful to an attacker
+    // it should not reset the attempts message because it is a warning, not an error
+    unset($_SESSION['messages']['error']);
+  }
+
   // Should the user be advised about the remaining login attempts?
   $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
   if ($notice_user == TRUE) {
@@ -306,7 +323,7 @@ function login_security_validate($form, &$form_state) {
       foreach ($variables as $key => $value) {
         $variables[$key] = theme('placeholder', $value);
       }
-      drupal_set_message(strtr(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables));
+      drupal_set_message(strtr(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
     }
   }
 

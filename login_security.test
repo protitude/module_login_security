@@ -106,6 +106,23 @@ class LoginSecurityFunctionalTest extends DrupalWebTestCase {
     $this->assertFieldByName('form_id', 'user_login', t('Login form found.'));
   }
 
+  function testDrupalErrorToggle() {
+    $normal_user = $this->drupalCreateUser(array('access content'));
+
+    // intentionally break the password to repeat invalid logins
+    $normal_user->pass_raw = user_password();
+
+    variable_set('login_security_disable_core_login_error', 0);
+
+    // drupalLogin() has assertions that we know will fail, so we must skip them with an alternate function
+    $this->drupalLoginLite($normal_user);
+    $this->assertRaw(t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password'))), t('Drupal login error message found.'));
+
+    variable_set('login_security_disable_core_login_error', 1);
+    $this->drupalLoginLite($normal_user);
+    $this->assertNoRaw(t('Sorry, unrecognized username or password. <a href="@password">Have you forgotten your password?</a>', array('@password' => url('user/password'))), t('Drupal login error message not found.'));
+  }
+
   function testLoginMessage() {
     $normal_user = $this->drupalCreateUser(array('access content'));
 
