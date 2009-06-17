@@ -115,7 +115,9 @@ function login_security_update_6000() {
 function login_security_update_6001() {
   $ret = array();
   db_drop_primary_key($ret, 'login_security_track');
+  db_add_primary_key($ret, 'login_security_track', array('id'));
   db_drop_index($ret, 'login_security_track', 'id');
+  db_add_index($ret, 'login_security_track', 'timestamp', array('timestamp'));
   db_change_field($ret, 'login_security_track', 'name', 'name', array(
       'type' => 'varchar',
       'length' => 64,
@@ -131,7 +133,5 @@ function login_security_update_6001() {
       'description' => t("Timestamp of the event."),
     )
   );
-  db_add_primary_key($ret, 'login_security_track', array('id'));
-  db_add_index($ret, 'login_security_track', 'timestamp', array('timestamp'));
   return $ret;
 }
