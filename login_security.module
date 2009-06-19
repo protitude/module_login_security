@@ -66,6 +66,23 @@ function login_security_form_alter(&$form, $form_state, $form_id) {
       // can read the old timestamp.
       $form['#validate'] = array_merge(array('login_security_set_login_timestamp'), $form['#validate']);
       $form['#validate'][] = 'login_security_validate';
+
+      // Change to do soft-blocking here, see issue: http://drupal.org/node/493164
+      // We alter the form here, and still show the message in the validation
+      $variables = _login_security_get_variables_by_name(check_plain($form['name']['#value']));
+      //drupal_set_message("<pre>".print_r($form,1)."</pre>");
+      // Check for host login attempts: Soft
+      if ($variables['%soft_block_attempts'] >= 1) {
+        if ($variables['%ip_current_count'] >= $variables['%soft_block_attempts']) {
+          //Alter current form, so user will not be able to submit it
+          // this loop is instead of doing t() because t() can only translate static strings, not variables.
+          foreach ($variables as $key => $value) {
+            $variables[$key] = theme('placeholder', $value);
+          }
+          form_set_error('submit', strtr(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), $variables));
+          unset($form['submit']);
+        }
+      }
       break;
     case 'user_admin_settings':
       if (user_access('administer users')) {
@@ -281,18 +298,6 @@ function login_security_validate($form, &$form_state) {
     }
   }
 
-  // Check for host login attempts: Soft
-  if ($variables['%soft_block_attempts'] >= 1) {
-    if ($variables['%ip_current_count'] > $variables['%soft_block_attempts']) {
-      // this loop is instead of doing t() because t() can only translate static strings, not variables.
-      foreach ($variables as $key => $value) {
-        $variables[$key] = theme('placeholder', $value);
-      }
-      form_set_error('submit', strtr(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), $variables));
-      drupal_goto(drupal_get_destination());
-    }
-  }
-
   // Check for user login attempts
   if ($variables['%user_block_attempts'] >= 1) {
     if ($variables['%user_current_count'] > $variables['%user_block_attempts']) {
@@ -316,11 +321,9 @@ function login_security_validate($form, &$form_state) {
       unset($_SESSION['messages']['error']);
     }
 
-
     // Should the user be advised about the remaining login attempts?
     $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
-    if ($notice_user == TRUE) {
-      if (!$account) {
+    if (($notice_user == TRUE) && ($variables['%user_block_attempts'] > 0)) {
         // this loop is instead of doing t() because t() can only translate static strings, not variables.
         foreach ($variables as $key => $value) {
           $variables[$key] = theme('placeholder', $value);
@@ -329,7 +332,6 @@ function login_security_validate($form, &$form_state) {
       }
     }
   }
-}
 
 /**
  * Save the login attempt in the tracking database: user name and ip address.
