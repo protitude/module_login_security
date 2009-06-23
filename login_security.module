@@ -64,25 +64,8 @@ function login_security_form_alter(&$form, $form_state, $form_id) {
       // Put login_security first or the capture of the previous login timestamp won't work
       // and core's validation will update to the current login instance before login_security
       // can read the old timestamp.
-      $form['#validate'] = array_merge(array('login_security_set_login_timestamp'), $form['#validate']);
+      $form['#validate'] = array_merge(array('login_security_soft_block_validate', 'login_security_set_login_timestamp'), $form['#validate']);
       $form['#validate'][] = 'login_security_validate';
-
-      // Change to do soft-blocking here, see issue: http://drupal.org/node/493164
-      // We alter the form here, and still show the message in the validation
-      $variables = _login_security_get_variables_by_name(check_plain($form['name']['#value']));
-      //drupal_set_message("<pre>".print_r($form,1)."</pre>");
-      // Check for host login attempts: Soft
-      if ($variables['%soft_block_attempts'] >= 1) {
-        if ($variables['%ip_current_count'] >= $variables['%soft_block_attempts']) {
-          //Alter current form, so user will not be able to submit it
-          // this loop is instead of doing t() because t() can only translate static strings, not variables.
-          foreach ($variables as $key => $value) {
-            $variables[$key] = theme('placeholder', $value);
-          }
-          form_set_error('submit', strtr(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), $variables));
-          unset($form['submit']);
-        }
-      }
       break;
     case 'user_admin_settings':
       if (user_access('administer users')) {
@@ -255,6 +238,25 @@ function login_security_set_login_timestamp($form, &$form_state) {
   }
   if (variable_get('login_security_last_access_timestamp', 0) && $account->access > 0) {
     drupal_set_message(t('Your last page access (site activity) was !stamp', array('!stamp' => format_date($account->access, 'large'))), 'status');
+  }
+}
+
+/**
+ * Temprarily deny validation to users with excess invalid login attempts.
+ *
+ * @url http://drupal.org/node/493164
+ */
+function login_security_soft_block_validate($form, &$form_state) {
+  $variables = _login_security_get_variables_by_name(check_plain($form['name']['#value']));
+  // Check for host login attempts: Soft
+  if ($variables['%soft_block_attempts'] >= 1) {
+    if ($variables['%ip_current_count'] >= $variables['%soft_block_attempts']) {
+      // this loop is instead of doing t() because t() can only translate static strings, not variables.
+      foreach ($variables as $key => $value) {
+        $variables[$key] = theme('placeholder', $value);
+      }
+      form_set_error('submit', strtr(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), $variables));
+    }
   }
 }
 
