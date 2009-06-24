@@ -366,7 +366,7 @@ function login_user_block_ip($variables) {
   $block->type = 'host';
   $block->status = 0;
   drupal_write_record('access', $block);
-  watchdog('login_security', 'Banned IP address %ip because of login security configuration.', $variables, WATCHDOG_NOTICE);
+  watchdog('login_security', 'Banned IP address %ip because of security configuration.', $variables, WATCHDOG_NOTICE);
   form_set_error('void', t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), $variables));
 }
 
@@ -388,7 +388,8 @@ function login_user_block_user_name($variables) {
     user_save($account, array('status' => 0), NULL);
     // remove user from site now.
     sess_destroy_uid($uid);
-    watchdog('user', 'Blocked user %name: with id %uid due to security configuration.', $variables, WATCHDOG_NOTICE);
+    // The watchdog aler is set to 'user' so it will show with other blocked user messages.
+    watchdog('user', 'Blocked user %username: with uid %uid due to security configuration.', $variables, WATCHDOG_NOTICE);
 
     // Send admin email
     if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL)) {
