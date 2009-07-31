@@ -362,12 +362,13 @@ function _login_security_add_event($name, $ip) {
  *   Optional. Add a deny rule in the access control to this IP Address.
  */
 function login_user_block_ip($variables) {
+  // There is no need to check if the host has been banned, we can't get here twice.
   $block = new stdClass();
   $block->mask = $variables['%ip'];
   $block->type = 'host';
   $block->status = 0;
   drupal_write_record('access', $block);
-  watchdog('login_security', 'Banned IP address %ip because of security configuration.', $variables, WATCHDOG_NOTICE);
+  watchdog('login_security', 'Banned IP address %ip due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit rule'), "admin/user/rules/edit/{$block->aid}", array('query' => array('destination' => 'admin/user/rules'))));
   form_set_error('void', t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), $variables));
 }
 
@@ -379,18 +380,23 @@ function login_user_block_ip($variables) {
  *
  */
 function login_user_block_user_name($variables) {
+  // If the user exists
   if ($variables['%uid'] > 1) {
-    form_set_error('void', t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), $variables));
     // Modifying the user table is not an option so it disables the user hooks. Need to do
     // firing the hook so user_notifications can be used.
     // db_query("UPDATE {users} SET status = 0 WHERE uid = %d", $uid);
     $uid = $variables['%uid'];
     $account = user_load(array("uid" => $uid));
+
+    // Block account if is active.
+    if ($account->status == 1) {
     user_save($account, array('status' => 0), NULL);
     // remove user from site now.
     sess_destroy_uid($uid);
-    // The watchdog aler is set to 'user' so it will show with other blocked user messages.
-    watchdog('user', 'Blocked user %username: with uid %uid due to security configuration.', $variables, WATCHDOG_NOTICE);
+      // The watchdog alert is set to 'user' so it will show with other blocked user messages.
+      watchdog('user', 'Blocked user %username due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit user'), "user/{$variables['%uid']}/edit", array('query' => array('destination' => 'admin/user/user'))));
+      // Also notify the user that account has been blocked.
+      form_set_error('void', t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), $variables));
 
     // Send admin email
     if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL)) {
@@ -402,6 +408,8 @@ function login_user_block_user_name($variables) {
       return drupal_mail('login_security', 'notify', $admin_mail, language_default(), $variables, $from, TRUE);
     }
   }
+
+}
 }
 
 
