@@ -86,6 +86,7 @@ function login_security_form_alter(&$form, $form_state, $form_id) {
  */
 function login_security_build_admin_form() {
   $form = array();
+
   $form['login_security_track_time'] = array(
     '#type' => 'textfield',
     '#title' => t('Track time'),
@@ -139,27 +140,50 @@ function login_security_build_admin_form() {
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
 
-  $form['login_security']['Notifications'] = array(
+  $form['login_messages'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Edit notifications'),
-    '#weight' => 0,
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-    '#description' => t("Allowed placeholders for notifications include the following: %date, %ip, %username, %email, %uid, %site, %uri, %edit_uri, %hard_block_attempts, %soft_block_attempts, %user_block_attempts, %user_ip_current_count, %ip_current_count, %user_current_count, %tracking_time")
+    '#title' => t('Notifications'),
   );
-
-  $form['login_security']['Notifications']['login_security_disable_core_login_error'] = array(
+  $form['login_messages']['login_security_disable_core_login_error'] = array(
     '#type' => 'checkbox',
     '#title' => t('Disable login failure error message'),
     '#description' => t('Sorry, unrecognized username or password. Have you forgotten your password?'),
     '#default_value' => variable_get('login_security_disable_core_login_error', LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR)
   );
-  $form['login_security']['Notifications']['login_security_notice_attempts_available'] = array(
+  $form['login_messages']['login_security_notice_attempts_available'] = array(
     '#type' => 'checkbox',
     '#title' => t('Notify the user about the number of remaining login attempts'),
     '#default_value' => variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE),
     '#description' => t('Security tip: If you enable this option, try to not disclose as much of your login policies as possible in the message shown on any failed login attempt.'),
   );
+  $form['login_messages']['login_security_last_login_timestamp'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display last login timestamp'),
+    '#description' => t('The last login timestamp will be displayed as a status message when users login.'),
+    '#default_value' => variable_get('login_security_last_login_timestamp', 0)
+  );
+  $form['login_messages']['login_security_last_access_timestamp'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display last access timestamp'),
+    '#description' => t('The last access timestamp will be displayed as a status message when users login.'),
+    '#default_value' => variable_get('login_security_last_access_timestamp', 0)
+  );
+  $form['login_messages']['login_security_user_blocked_email'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Send email message to the admin (uid 1) when a user is blocked'),
+    '#default_value' => variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL),
+  );
+
+
+  $form['login_security']['Notifications'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Edit notification texts'),
+    '#weight' => 3,
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#description' => t("Allowed placeholders for notifications include the following: %date, %ip, %username, %email, %uid, %site, %uri, %edit_uri, %hard_block_attempts, %soft_block_attempts, %user_block_attempts, %user_ip_current_count, %ip_current_count, %user_current_count, %tracking_time")
+  );
+
   $form['login_security']['Notifications']['login_security_notice_attempts_message'] = array(
     '#type' => 'textarea',
     '#title' => t('Message to be shown on each failed login attempt'),
@@ -167,7 +191,6 @@ function login_security_build_admin_form() {
     '#default_value' => variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE),
     '#description' => t('Enter the message string to be shown if the login fails after the form is submitted. You can use any of the placeholders here.'),
   );
-
   $form['login_security']['Notifications']['login_security_host_soft_banned'] = array(
     '#type' => 'textarea',
     '#title' => t('Message for banned host (Soft IP ban)'),
@@ -189,12 +212,6 @@ function login_security_build_admin_form() {
     '#default_value' => variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED),
     '#description' => t('Enter the message to be shown when a user gets blocked due to enough failed login attempts.'),
   );
-
-  $form['login_security']['Notifications']['login_security_user_blocked_email'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Send email message to the admin (uid 1) when a user is blocked'),
-    '#default_value' => variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL),
-  );
   $form['login_security']['Notifications']['login_security_user_blocked_email_subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Email subject'),
@@ -205,22 +222,6 @@ function login_security_build_admin_form() {
     '#title' => t('Email body'),
     '#default_value' => variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY),
     '#description' => t('Enter the message to be sent to the administrator informing a user has been blocked.'),
-  );
-  $form['login_messages'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Login messages'),
-  );
-  $form['login_messages']['login_security_last_login_timestamp'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display last login timestamp'),
-    '#description' => t('The last login timestamp will be displayed as a status message when users login.'),
-    '#default_value' => variable_get('login_security_last_login_timestamp', 0)
-  );
-  $form['login_messages']['login_security_last_access_timestamp'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Display last access timestamp'),
-    '#description' => t('The last access timestamp will be displayed as a status message when users login.'),
-    '#default_value' => variable_get('login_security_last_access_timestamp', 0)
   );
 
   return $form;
