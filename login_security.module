@@ -10,7 +10,7 @@
  * Thanks to christefano for the module tips and strings
  */
 
-define('LOGIN_SECURITY_TRACK_TIME', 0);
+define('LOGIN_SECURITY_TRACK_TIME', 1);
 define('LOGIN_SECURITY_BASE_TIME', 0);
 define('LOGIN_SECURITY_DELAY_INCREASE', 0);
 define('LOGIN_SECURITY_USER_WRONG_COUNT', 0);
@@ -30,9 +30,8 @@ define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', "The user %username (%edit_uri)
  * Implementation of hook_cron().
  */
 function login_security_cron() {
-  // calc expiring time of login security tracked entries
-  $time = time() - (variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME) * 3600);
-  db_query("DELETE FROM {login_security_track} WHERE timestamp < %d", $time);
+  // Remove expired events
+  _login_security_remove_events();
   return;
 }
 
@@ -43,12 +42,15 @@ function login_security_user($op, &$edit, &$account, $category = NULL) {
   switch ($op) {
     case 'login':
       // On success login remove any temporary protection for the IP address and the username
-      db_query("DELETE FROM {login_security_track} WHERE name = '%s' AND host = '%s'", check_plain($edit['name']), check_plain(ip_address()));
+      _login_security_remove_events($edit['name'], ip_address());
       break;
     case 'update':
-      // The update case can be launched by the user or by any user administrator
-      // On update, remove only the unser information tracked
-      db_query("DELETE FROM {login_security_track} WHERE name = '%s'", check_plain($edit['name']));
+      // The update case can be launched by the user or by any administrator
+      // On update, remove only the unser information tracked.
+      if ($edit['status'] != 0) {
+        // Don't remove tracking events if account is being blocked
+        _login_security_remove_events($account->name);
+      }
       break;
       // Cron will clean the forgotten tracking entries, including the deleted users.
   }
@@ -231,6 +233,8 @@ function login_security_build_admin_form() {
  * Previous incarnations of this code put it in hook_submit or hook_user, but since
  * Drupal core validation updates the login timestamp, we have to set the message before
  * it gets updated with the current login instance.
+ *
+ * Also we save the login attempt event here.
  */
 function login_security_set_login_timestamp($form, &$form_state) {
   $account = user_load(array('name' => $form_state['values']['name'], 'pass' => trim($form_state['values']['pass']), 'status' => 1));
@@ -240,6 +244,8 @@ function login_security_set_login_timestamp($form, &$form_state) {
   if (variable_get('login_security_last_access_timestamp', 0) && $account->access > 0) {
     drupal_set_message(t('Your last page access (site activity) was !stamp', array('!stamp' => format_date($account->access, 'large'))), 'status');
   }
+    // Save entry in security log, Username and IP Address
+  _login_security_add_event(check_plain($form_state['values']['name']), check_plain(ip_address()));
 }
 
 /**
@@ -277,8 +283,8 @@ function login_security_validate($form, &$form_state) {
     return;
   }
 
-  // Save entry in security log, Username and IP Address
-  _login_security_add_event($name, check_plain(ip_address()));
+  // Expire old tracked entries
+  _login_security_remove_events();
 
   // Populate variables to be used in any module message or login operation
   $variables = _login_security_get_variables_by_name($name);
@@ -326,7 +332,7 @@ function login_security_validate($form, &$form_state) {
 
     // Should the user be advised about the remaining login attempts?
     $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
-    if (($notice_user == TRUE) && ($variables['%user_block_attempts'] > 0)) {
+    if (($notice_user == TRUE) && ($variables['%user_block_attempts'] > 0) && $variables['%user_block_attempts'] >= $variables['%user_current_count']) {
         // this loop is instead of doing t() because t() can only translate static strings, not variables.
         foreach ($variables as $key => $value) {
           $variables[$key] = theme('placeholder', $value);
@@ -335,6 +341,33 @@ function login_security_validate($form, &$form_state) {
       }
     }
   }
+
+/**
+ * Remove tracked events or expire old ones.
+ *
+ * @param $name
+ *   if specified, events for this user name will be removed.
+ *
+ * @param $ip
+ *   if specified, IP Address of the name-ip pair to be removed.
+ */
+function _login_security_remove_events($name = NULL, $ip = NULL) {
+  // Remove selected events
+  if (!empty($name)) {
+    if (!empty($host)) {
+      db_query("DELETE FROM {login_security_track} WHERE name = '%s' AND host = '%s'", check_plain($name), check_plain(ip_address()));
+    }
+    else {
+      db_query("DELETE FROM {login_security_track} WHERE name = '%s'", check_plain($name));
+    }
+  }
+  else {
+    // Calculate protection time window and remove expired events
+    $time = time() - (variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME) * 3600);
+    db_query("DELETE FROM {login_security_track} WHERE timestamp < %d", $time);
+  }
+  return;
+}
 
 /**
  * Save the login attempt in the tracking database: user name and ip address.
