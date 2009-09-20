@@ -93,6 +93,7 @@ function login_security_build_admin_form() {
     '#type' => 'textfield',
     '#title' => t('Track time'),
     '#default_value' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
+    '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the time that each failed login attempt is kept for future computing.'),
@@ -102,6 +103,7 @@ function login_security_build_admin_form() {
     '#type' => 'textfield',
     '#title' => t('Login delay base time'),
     '#default_value' => variable_get('login_security_delay_base_time', LOGIN_SECURITY_BASE_TIME),
+    '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the base time for login delay'),
@@ -118,6 +120,7 @@ function login_security_build_admin_form() {
     '#type' => 'textfield',
     '#title' => t('Maximum number of login failures before blocking a user'),
     '#default_value' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
+    '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the number of login failures a user is allowed. After that amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users.'),
@@ -127,6 +130,7 @@ function login_security_build_admin_form() {
     '#type' => 'textfield',
     '#title' => t('Maximum number of login failures before soft blocking a host'),
     '#default_value' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_HOST_WRONG_COUNT),
+    '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the number of login failures a host is allowed. After that amount is reached, the host will not be able to log in but can still browse the site contents as an anonymous user.'),
@@ -136,6 +140,7 @@ function login_security_build_admin_form() {
     '#type' => 'textfield',
     '#title' => t('Maximum number of login failures before blocking a host'),
     '#default_value' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
+    '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the number of login failures a host is allowed. After that number is reached, the host will be blocked, no matter the username attempting to log in.'),
@@ -229,6 +234,15 @@ function login_security_build_admin_form() {
   return $form;
 }
 
+/*
+ * Verify that element is a positive integer value
+ */
+function _login_security_valid_integer($element, &$form_state) {
+  if (!ctype_alnum($element['#value']) || intval($element['#value']) < 0 ) {
+    form_error($element, t('The !field field should be a positive integer value greater than or equal to 0.', array('!field' => $element['#title'])));
+  }
+}
+
 /**
  * Previous incarnations of this code put it in hook_submit or hook_user, but since
  * Drupal core validation updates the login timestamp, we have to set the message before
@@ -292,14 +306,12 @@ function login_security_validate($form, &$form_state) {
   // Start with login Delay
   if ($delay = variable_get('login_security_delay_base_time', LOGIN_SECURITY_BASE_TIME)) {
     $secs = (variable_get('login_security_delay_increase', LOGIN_SECURITY_DELAY_INCREASE) == 1) ? intval($variables['%user_ip_current_count']-1) * intval($delay) : intval($delay);
-    if ($secs >= ini_get('max_execution_time')) {
-      $secs = ini_get('max_execution_time') - 3;
-    }
-
-    @sleep($secs);
+    //Included 0 just in case of 'max_execution_time' being lower than 3
+    $sleep_time  = max(0, min(ini_get('max_execution_time') - 3, $secs));
+    @sleep($sleep_time);
   }
 
-  // Check for host login attempts: Hard
+// Check for host login attempts: Hard
   if ($variables['%hard_block_attempts'] >= 1) {
     if ($variables['%ip_current_count'] > $variables['%hard_block_attempts']) {
       // block the host check_plain(ip_address())
