@@ -153,7 +153,7 @@ function login_security_validate($form, &$form_state) {
         watchdog('login_security', 'Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently %tracking_current_count events are tracked, and threshold is configured for %activity_threshold attempts.', $variables, WATCHDOG_WARNING);
         variable_set('login_security_threshold_notified', TRUE);
         //Submit email only if required..
-        if( variable_get('login_security_login_activity_email', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL) ){
+        if (variable_get('login_security_login_activity_email', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL)) {
           $from = variable_get('site_mail', ini_get('sendmail_from'));
           $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE uid = 1"));
           $subject = login_security_t(variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT), $variables);

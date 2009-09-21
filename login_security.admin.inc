@@ -220,6 +220,6 @@ function _login_security_valid_integer($element, &$form_state) {
  * Clean login_security_track table
  */
 function _login_security_clean_tracked_events($form, &$form_state) {
-  drupal_set_message('Login Security event track list is now empty.');
+  drupal_set_message(t('Login Security event track list is now empty.'));
   _login_security_remove_all_events();
 }
