@@ -239,8 +239,24 @@ function _login_security_remove_events($name = NULL, $ip = NULL) {
   else {
     // Calculate protection time window and remove expired events
     $time = time() - (variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME) * 3600);
-    db_query("DELETE FROM {login_security_track} WHERE timestamp < %d", $time);
+    _login_security_remove_all_events($time);
   }
+  return;
+}
+
+/**
+ * Remove all tracked events up to a date..
+ *
+ * @param $time
+ *   if specified, events up to this timestamp will be deleted. If not specified,
+ *   all elements up to current timestamp will be deleted.
+ */
+function _login_security_remove_all_events($time = NULL) {
+  // Remove selected events
+  if (empty($time)) {
+    $time = time();
+  }
+  db_query("DELETE FROM {login_security_track} WHERE timestamp < %d", $time);
   return;
 }
 

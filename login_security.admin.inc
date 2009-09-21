@@ -195,7 +195,15 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_login_activity_email_body', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY),
     '#description' => t('Enter the message to be sent to the administrator informing about supicious activity.'),
   );
-  
+
+  //Clean event tracking list
+  $form['buttons']['login_security_clean_tracked_events'] = array(
+    '#type' => 'submit',
+    '#value' => t('Clear event tracking information'),
+    '#weight' => 20,
+    '#submit' => array('_login_security_clean_tracked_events'),
+  );
+
   return system_settings_form($form);
 }
 
@@ -206,4 +214,12 @@ function _login_security_valid_integer($element, &$form_state) {
   if (!ctype_alnum($element['#value']) || intval($element['#value']) < 0 ) {
     form_error($element, t('The !field field should be a positive integer value greater than or equal to 0.', array('!field' => $element['#title'])));
   }
+}
+
+/*
+ * Clean login_security_track table
+ */
+function _login_security_clean_tracked_events($form, &$form_state) {
+  drupal_set_message('Login Security event track list is now empty.');
+  _login_security_remove_all_events();
 }

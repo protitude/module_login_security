@@ -97,7 +97,7 @@ Login Security module.
 
 Go to Administer -> Site configuration -> Login Security (the url path is
 admin/settings/login_security) and a form with the module options will be shown.
-(Note: Any value set to 0 will disable that option.). You should have '
+(Note: Any value set to 0 will disable that option.).
 
 Basic options
 
@@ -186,6 +186,15 @@ the strings could be personalized using the following placeholders:
     %tracking_time         :  The tracking time: in hours
     %tracking_current_count:  Total tracked events
     %activity_threshold    :  Value of attempts to detect ongoing attack.
+
+
+Cleaning the event tracking information
+---------------------------------------
+If for any reaons, you are encoutering problems with specific users (because
+they are being delayed or access is restricted), or if you change settings and
+want to do a module 'restart', you may clean the event track in this settings
+page. At the bottom you will find a "Clea event tracking information" button.
+If you click this button, all tracked events will be deleted.
 
 
 Understanding protections
