@@ -72,6 +72,16 @@ function login_security_admin_settings() {
     '#description' => t('Enter the number of login failures a host is allowed. After that number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not dissapear automatically and should be removed manually from the !access administration interface.', array('!access' => l(t('access rules'), 'admin/user/rules'))),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
+  $form['login_security_activity_threshold'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Maximum number of login failures before detecting an ongoing attack'),
+    '#default_value' => variable_get('login_security_activity_threshold', LOGIN_SECURITY_ACTIVITY_THRESHOLD),
+    '#element_validate' => array('_login_security_valid_integer'),
+    '#size' => 3,
+    '#maxlength' => 3,
+    '#description' => t('Enter the number of login failures before creating a warning log entry about this suspicious activity. If the number of invalid login events currently being tracked reach this number, and ongoing attack is detected.'),
+    '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
+  );
 
   $form['login_messages'] = array(
     '#type' => 'fieldset',
@@ -106,6 +116,11 @@ function login_security_admin_settings() {
     '#title' => t('Send email message to the admin (uid 1) when a user is blocked by this module.'),
     '#default_value' => variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL),
   );
+  $form['login_messages']['login_security_login_activity_email'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Send email message to the admin (uid 1) when an ongoing attack is detected.'),
+    '#default_value' => variable_get('login_security_login_activity_email', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL),
+  );
 
 
   $form['login_security']['Notifications'] = array(
@@ -114,7 +129,7 @@ function login_security_admin_settings() {
     '#weight' => 3,
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#description' => t("You may edit the notifications used by the Login Security module. Allowed placeholders for all the notifications include the following: <ul><li>%date                  :  The (formatted) date and time of the event.</li><li>%ip                    :  The IP address tracked for this event.</li><li>%username              :  The username entered in the login form (sanitized).</li><li>%email                 :  If the user exists, this will be the email address.</li><li>%uid                   :  If the user exists, this will be the user uid.</li><li>%site                  :  The name of the site as configured in the administration.</li><li>%uri                   :  The base url of this Drupal site.</li><li>%edit_uri              :  Direct link to the user (based on the name entered) edit page.</li><li>%hard_block_attempts   :  Configured maximum attempts before hard blocking the IP address.</li><li>%soft_block_attempts   :  Configured maximum attempts before soft blocking the IP address.</li><li>%user_block_attempts   :  Configured maximum login attempts before blocking the user.</li><li>%user_ip_current_count :  The total attempts for this user name tracked from this IP address.</li><li>%ip_current_count      :  The total login attempts tracked from from this IP address.</li><li>%user_current_count    :  The total login attempts tracked for this user name .</li><li>%tracking_time         :  The tracking time value: in hours.</li></ul>"),
+    '#description' => t("You may edit the notifications used by the Login Security module. Allowed placeholders for all the notifications include the following: <ul><li>%date                  :  The (formatted) date and time of the event.</li><li>%ip                    :  The IP address tracked for this event.</li><li>%username              :  The username entered in the login form (sanitized).</li><li>%email                 :  If the user exists, this will be the email address.</li><li>%uid                   :  If the user exists, this will be the user uid.</li><li>%site                  :  The name of the site as configured in the administration.</li><li>%uri                   :  The base url of this Drupal site.</li><li>%edit_uri              :  Direct link to the user (based on the name entered) edit page.</li><li>%hard_block_attempts   :  Configured maximum attempts before hard blocking the IP address.</li><li>%soft_block_attempts   :  Configured maximum attempts before soft blocking the IP address.</li><li>%user_block_attempts   :  Configured maximum login attempts before blocking the user.</li><li>%user_ip_current_count :  The total attempts for this user name tracked from this IP address.</li><li>%ip_current_count      :  The total login attempts tracked from from this IP address.</li><li>%user_current_count    :  The total login attempts tracked for this user name .</li><li>%tracking_time         :  The tracking time value: in hours.</li><li>%tracking_current_count:  Total tracked events</li><li>%activity_threshold    :  Value of attempts to detect ongoing attack.</li></ul>"),
   );
   $form['login_security']['Notifications']['login_security_notice_attempts_message'] = array(
     '#type' => 'textarea',
@@ -145,25 +160,42 @@ function login_security_admin_settings() {
     '#description' => t('Enter the message to be shown when a user gets blocked due to enough failed login attempts.'),
   );
 
-  $form['login_security']['Notifications']['email'] = array(
+  $form['login_security']['Notifications']['user_block_email'] = array(
     '#type' => 'fieldset',
     '#title' => t('Email to be sent to the administrator user (uid 1) for blocked accounts.'),
     '#weight' => 3,
-    '#description' => t('Configure the subject and body fo the email message.'),
+    '#description' => t('Configure the subject and body of the email message.'),
   );
-
-  $form['login_security']['Notifications']['email']['login_security_user_blocked_email_subject'] = array(
+  $form['login_security']['Notifications']['user_block_email']['login_security_user_blocked_email_subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Email subject'),
     '#default_value' => variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT),
   );
-  $form['login_security']['Notifications']['email']['login_security_user_blocked_email_body'] = array(
+  $form['login_security']['Notifications']['user_block_email']['login_security_user_blocked_email_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Email body'),
     '#default_value' => variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY),
     '#description' => t('Enter the message to be sent to the administrator informing a user has been blocked.'),
   );
 
+  $form['login_security']['Notifications']['login_activity_email'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Email to be sent to the administrator user (uid 1) for ongoing attack detections.'),
+    '#weight' => 3,
+    '#description' => t('Configure the subject and body of the email message.'),
+  );
+  $form['login_security']['Notifications']['login_activity_email']['login_security_login_activity_email_subject'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Email subject'),
+    '#default_value' => variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT),
+  );
+  $form['login_security']['Notifications']['login_activity_email']['login_security_login_activity_email_body'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Email body'),
+    '#default_value' => variable_get('login_security_login_activity_email_body', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY),
+    '#description' => t('Enter the message to be sent to the administrator informing about supicious activity.'),
+  );
+  
   return system_settings_form($form);
 }
 

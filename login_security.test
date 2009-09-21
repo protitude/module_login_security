@@ -44,6 +44,11 @@ class LoginSecurityInterfaceTest extends DrupalWebTestCase {
     $this->assertField('login_security_user_blocked_email_body', t('User blocked email body field exists'));
     $this->assertField('login_security_last_login_timestamp', t('Last login timestamp field exists.'));
     $this->assertField('login_security_last_access_timestamp', t('Last access timestamp field exists.'));
+    $this->assertField('login_security_login_activity_email', t('Send email for unexpected login activity field exists.'));
+    $this->assertField('login_security_login_activity_email_subject', t('Login activity email subject field exists.'));
+    $this->assertField('login_security_login_activity_email_body', t('Login activity email body field exists.'));
+    $this->assertField('login_security_activity_threshold', t('Invalid login threshold field exists.'));
+    
   }
 }
 

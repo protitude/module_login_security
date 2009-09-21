@@ -18,6 +18,7 @@ define('LOGIN_SECURITY_HOST_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
 define('LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR', 0);
 define('LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE', 0);
+define('LOGIN_SECURITY_ACTIVITY_THRESHOLD', 0);
 define('LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE', "You have used %user_current_count out of %user_block_attempts login attempts. After all %user_block_attempts have been used, you will be unable to login.");
 define('LOGIN_SECURITY_HOST_SOFT_BANNED', "This host is not allowed to log in to %site. Please contact your site administrator.");
 define('LOGIN_SECURITY_HOST_HARD_BANNED', "The IP address <em>%ip</em> is banned at %site, and will not be able to access any of its content from now on. Please contact the site administrator.");
@@ -25,6 +26,10 @@ define('LOGIN_SECURITY_USER_BLOCKED', "The user <em>%username</em> has been bloc
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL', FALSE);
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT', "Security action: The user %username has been blocked.");
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', "The user %username (%edit_uri) has been blocked at %site due to the amount of failed login attempts. Please check the logs for more information.");
+define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL', FALSE);
+define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT', "Security information: Unexpected login activity has been detected at %site.");
+define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', "The configured threshold of %activity_threshold logins has been reached with a tota of %tracking_current_count invalid login attempts. You should review your log information about login attempts at %site.");
+define('LOGIN_SECURITY_THRESHOLD_NOTIFIED', FALSE);
 
 /**
  * Implementation of hook_cron().
@@ -100,7 +105,7 @@ function login_security_set_login_timestamp($form, &$form_state) {
 }
 
 /**
- * Temprarily deny validation to users with excess invalid login attempts.
+ * Temporarily deny validation to users with excess invalid login attempts.
  *
  * @url http://drupal.org/node/493164
  */
@@ -136,7 +141,35 @@ function login_security_validate($form, &$form_state) {
   // Populate variables to be used in any module message or login operation
   $variables = _login_security_get_variables_by_name($name);
 
-  // Start with login Delay
+  // First, check if administrator should be notified of unexpected login activity..
+  // Only process if configured threshold > 1
+  // see: http://drupal.org/node/583092
+  if ($variables['%activity_threshold'])  {
+    //check if threshold has been reached
+    if ($variables['%tracking_current_count'] > $variables['%activity_threshold'] ) {
+      // Check if admin has been already alerted
+      if (!variable_get('login_security_threshold_notified', LOGIN_SECURITY_THRESHOLD_NOTIFIED)) {
+        //Mark alert status as notified and send the email
+        watchdog('login_security', 'Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently %tracking_current_count events are tracked, and threshold is configured for %activity_threshold attempts.', $variables, WATCHDOG_WARNING);
+        variable_set('login_security_threshold_notified', TRUE);
+        //Submit email only if required..
+        if( variable_get('login_security_login_activity_email', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL) ){
+          $from = variable_get('site_mail', ini_get('sendmail_from'));
+          $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE uid = 1"));
+          $subject = login_security_t(variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT), $variables);
+          $body = login_security_t(variable_get('login_security_login_activity_email_mody', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY), $variables);
+          $mail = drupal_mail('login_security', 'login_activity_notify', $admin_mail, language_default(), $variables, $from, TRUE);
+        }
+      }
+    }
+    elseif ($variables['%tracking_current_count'] < ($variables['%activity_threshold'] / 3) ) {
+      //Reset alert if currently tracked events is < threshold / 3
+      watchdog('login_security', 'Suspicious activity in login form submissions is no longer detected: currently %tracking_current_count events are being tracked, and threshold is configured for %activity_threshold maximum allowed attempts).', $variables, WATCHDOG_NOTICE);
+      variable_set('login_security_threshold_notified', FALSE);
+    }
+  }
+
+  // then, start with login Delay
   if ($delay = variable_get('login_security_delay_base_time', LOGIN_SECURITY_BASE_TIME)) {
     $secs = (variable_get('login_security_delay_increase', LOGIN_SECURITY_DELAY_INCREASE) == 1) ? intval($variables['%user_ip_current_count']-1) * intval($delay) : intval($delay);
     //Included 0 just in case of 'max_execution_time' being lower than 3
@@ -144,7 +177,7 @@ function login_security_validate($form, &$form_state) {
     @sleep($sleep_time);
   }
 
-// Check for host login attempts: Hard
+  // Check for host login attempts: Hard
   if ($variables['%hard_block_attempts'] >= 1) {
     if ($variables['%ip_current_count'] > $variables['%hard_block_attempts']) {
       // block the host check_plain(ip_address())
@@ -178,11 +211,11 @@ function login_security_validate($form, &$form_state) {
     // Should the user be advised about the remaining login attempts?
     $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
     if (($notice_user == TRUE) && ($variables['%user_block_attempts'] > 0) && $variables['%user_block_attempts'] >= $variables['%user_current_count']) {
-        // this loop is instead of doing t() because t() can only translate static strings, not variables.
+      // this loop is instead of doing t() because t() can only translate static strings, not variables.
       drupal_set_message(login_security_t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
-        }
       }
     }
+  }
 
 /**
  * Remove tracked events or expire old ones.
@@ -310,6 +343,8 @@ function _login_security_get_variables_by_name($name) {
     '%ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", $ipaddress)),
     '%user_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s'", $name)),
     '%tracking_time' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
+    '%tracking_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track}")),
+    '%activity_threshold' => variable_get('login_security_activity_threshold', LOGIN_SECURITY_ACTIVITY_THRESHOLD),
   );
   return $variables;
 }
@@ -319,6 +354,10 @@ function login_security_mail($key, &$message, $variables) {
     case 'block_user_notify':
       $message['subject'] = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
       $message['body'] = login_security_t(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
+      break;
+    case 'login_activity_notify':
+      $message['subject'] = login_security_t(variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT), $variables);
+      $message['body'] = login_security_t(variable_get('login_security_login_activity_email_mody', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY), $variables);
       break;
   }
 }

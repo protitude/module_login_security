@@ -12,6 +12,12 @@ block login form).
 
 These are the features included:
 
+Ongoing attack detection
+------------------------
+System will detect if a password guessing or bruteforce attack is being performed
+against the Drupal login form. Using a threshold value, you instruct the module
+to alert (using a watchdog message, and optionally send an email) the admin user
+when the number of invalid login attempts reaches the threshold value.
 
 Soft Protections
 ----------------
@@ -128,6 +134,11 @@ Basic options
    included in the access list as a deny rule. To remove the IP from this ban,
    you will have to go to:  Administer -> User Management -> Access Rules.
 
+ - Maximum number of login failures to detect ongoing attack: This value is the
+   threshold used to detect a password guess attack. The limit means that during
+   the "track time" period, this number of invalid logins indicates a password
+   guessing attack.
+
 Notifications
 
  The module also provides some notifications for the users to understand what is
@@ -147,8 +158,13 @@ Notifications
    will be shown at all, so user will not be aware of unsuccessful login
    attempt, or blocked account messages.
 
- - Send email message to the admin: An email could also be sent to the 
-   administrator (uid 1), each time an account is blocked.
+ - Send email message to the admin about blocked accounts: An email could also
+   be sent to the administrator (uid 1), each time an account is blocked.
+
+ - Send email message to the admin about login suspicious activity: An email
+   could also be sent to the administrator (uid 1), whenever suspicious activity
+   in detected in the login form submissions. When a determined value (threshold)
+   of invalid login attemps is reached, the email is sent.
 
 Notifications are configurable in the Login Security settings section, where
 the strings could be personalized using the following placeholders:
@@ -168,6 +184,8 @@ the strings could be personalized using the following placeholders:
     %ip_current_count      :  The total login attempts by this IP address
     %user_current_count    :  The total login attempts for this name 
     %tracking_time         :  The tracking time: in hours
+    %tracking_current_count:  Total tracked events
+    %activity_threshold    :  Value of attempts to detect ongoing attack.
 
 
 Understanding protections
@@ -204,6 +222,23 @@ list of what's now implemented and how login submissions affect the protections:
    Note: The tracking entries in the database for any host <-> username pair are
         being deleted on: 'login', 'update' and 'delete' user operations.
 
+ 6.- For the onoing attack detection, all the tracked events are taken in count.
+   The system detects an ongoing attack and notices the admin about that. It will
+   remain in attack mode (no more notices will be sent) untill the attack is no
+   longer detected. This will happen when the total number of tracked events is
+   below 'maximum allowed to detect ongoing attack' / 3. Since then, once the
+   threshold value is reached again, a new notification will be set in the log
+   or sent by email.
+
+   E.g Say you put 1 hour of track time and a maximum number of login failures
+   to detect ongoing attack of 20. This means that if during the last hour there
+   are more than 20 invalid login attemps an attack is detected. A log entry is
+   created to notice the detected attack, and system switches to 'attack' status,
+   where no more notices about the attack will be logged or sent. After sometime
+   the attack stops. And once the number of invalid login attemps for this last
+   hour is below 1/3 of this maximum: invalid attemps are below 6 (20 / 3 for
+   the example) a normal status is recovered. If a new attack is detected, the
+   module will alert again about it.
 
 Most used configuration
 -----------------------
