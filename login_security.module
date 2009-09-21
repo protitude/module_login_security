@@ -436,24 +436,24 @@ function login_user_block_user_name($variables) {
 
     // Block account if is active.
     if ($account->status == 1) {
-    user_save($account, array('status' => 0), NULL);
-    // remove user from site now.
-    sess_destroy_uid($uid);
+      user_save($account, array('status' => 0), NULL);
+      // remove user from site now.
+      sess_destroy_uid($uid);
       // The watchdog alert is set to 'user' so it will show with other blocked user messages.
       watchdog('user', 'Blocked user %username due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit user'), "user/{$variables['%uid']}/edit", array('query' => array('destination' => 'admin/user/user'))));
       // Also notify the user that account has been blocked.
       form_set_error('void', login_security_t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), $variables));
 
-    // Send admin email
-    if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL)) {
-      $from = variable_get('site_mail', ini_get('sendmail_from'));
-      $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE uid = 1"));
+      // Send admin email
+      if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL)) {
+        $from = variable_get('site_mail', ini_get('sendmail_from'));
+        $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE uid = 1"));
         $subject = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
         $body = login_security_t(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
-      return drupal_mail('login_security', 'notify', $admin_mail, language_default(), $variables, $from, TRUE);
+        return drupal_mail('login_security', 'block_user_notify', $admin_mail, language_default(), $variables, $from, TRUE);
+      }
     }
   }
-}
 }
 
 
@@ -486,7 +486,7 @@ function _login_security_get_variables_by_name($name) {
 
 function login_security_mail($key, &$message, $variables) {
   switch ($key) {
-    case 'notify':
+    case 'block_user_notify':
       $message['subject'] = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
       $message['body'] = login_security_t(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
       break;
