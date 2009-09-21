@@ -86,9 +86,12 @@ and save the configuration.
 
 Configuration options
 ---------------------
-Go to Administer -> User Management -> User Settings and new box will appear
-close to the registering information with the following options. Any value
-set to 0 will disable that option.
+You should have the 'administer site configuration' permission to configure the
+Login Security module.
+
+Go to Administer -> Site configuration -> Login Security (the url path is
+admin/settings/login_security) and a form with the module options will be shown.
+(Note: Any value set to 0 will disable that option.). You should have '
 
 Basic options
 
@@ -101,9 +104,9 @@ Basic options
    An invalid login attempt will have a punishment of these number of seconds, 
    as a protection for password guessing attempts.
 
- - Login delay base time: Delay in seconds for the next login count. It's 
-   computed by host and user, so any attempt to login again with the same user
-   from the same IP address will be punished with additional delay time. The 
+ - Increase delay for each attempt?: Delay in seconds for the next login count.
+   It's  computed by host and user, so any attempt to login again with the same
+   user from the same IP address will be punished with additional delay time. The
    time the user has to wait for the next login operation is (attempts * delay), 
    and the number of attempts is counted within the "Track time" time value. In 
    the previous example of 24 hours, after 24h the login attemps will be cleared,
@@ -147,10 +150,10 @@ Notifications
  - Send email message to the admin: An email could also be sent to the 
    administrator (uid 1), each time an account is blocked.
 
-Some of the strings are configurable in the same administration section. The
-strings can be personalized using the following placeholders:
+Notifications are configurable in the Login Security settings section, where
+the strings could be personalized using the following placeholders:
 
-    %date                  :  The (formated) date and time of the operation
+    %date                  :  The (formatted) date and time of the operation
     %ip                    :  The IP Address performing the operation
     %username              :  The username entered in the login form (sanitized)
     %email                 :  If the user exists, this will be it's name

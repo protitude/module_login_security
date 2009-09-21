@@ -19,14 +19,14 @@ class LoginSecurityInterfaceTest extends DrupalWebTestCase {
     parent::setUp('login_security');
 
     // Create and login user
-    $admin_user = $this->drupalCreateUser(array('administer users'));
+    $admin_user = $this->drupalCreateUser(array('administer site configuration'));
     $this->drupalLogin($admin_user);
     // Set time tracking window to 1 hour
     variable_set('login_security_track_time', 1);
   }
 
   function testAdminUserSettings() {
-    $this->drupalGet('admin/user/settings');
+    $this->drupalGet('admin/settings/login_security');
     $this->assertResponse(200, t('Access granted to settings page.'));
     $this->assertField('login_security_track_time', t('Track time field exists.'));
     $this->assertField('login_security_delay_base_time', t('Delay base time field exists.'));
