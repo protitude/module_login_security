@@ -96,7 +96,7 @@ function login_security_build_admin_form() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the time that each failed login attempt is kept for future computing.'),
+    '#description' => t('The time window where to check for security violiations: the time in hours the login information is kept to compute the login attempts count. A common example could be 24 hours. After that time, the attempt is deleted from the list, and will never be considered again.'),
     '#field_suffix' => '<kbd>'. t('Hours') .'</kbd>'
   );
   $form['login_security_delay_base_time'] = array(
@@ -106,7 +106,7 @@ function login_security_build_admin_form() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the base time for login delay'),
+    '#description' => t('Delay in seconds for the login process: any invalid login attempt will have a punishment of these seconds, as a protection for password guessing attempts.'),
     '#field_suffix' => '<kbd>'. t('Seconds') .'</kbd>'
   );
   $form['login_security_delay_increase'] = array(
@@ -114,7 +114,7 @@ function login_security_build_admin_form() {
     '#title' => t('Increase delay for each attempt?'),
     '#default_value' => variable_get('login_security_delay_increase', LOGIN_SECURITY_DELAY_INCREASE),
     '#options' => array(1 => 'Yes', 0 => 'No'),
-    '#description' => t('Computed as (base time) x (login attempts) for that user.'),
+    '#description' => t('Increase delay in seconds for the next login count. It is computed by host and user, so any attempt to login again with the same user from the same IP address will be punished with a delay computed as (delay base time) x (login attempts for this user from this IP address) in seconds. The number of attempts is counted within the "Track time" time value. In the previous example of 24 hours tracking time, after 24h the login attemps will be cleared, and the delay decreased.'),
   );
   $form['login_security_user_wrong_count'] = array(
     '#type' => 'textfield',
@@ -123,7 +123,7 @@ function login_security_build_admin_form() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a user is allowed. After that amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users.'),
+    '#description' => t('Enter the number of login failures a user is allowed. After that amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not dissapear and should be removed manually from the !users interface.', array('!users' => l('user management', 'admin/user/user'))),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_host_wrong_count'] = array(
@@ -133,7 +133,7 @@ function login_security_build_admin_form() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a host is allowed. After that amount is reached, the host will not be able to log in but can still browse the site contents as an anonymous user.'),
+    '#description' => t('Enter the number of login failures a host is allowed. After that amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is efective during the time indicated at tracking time opion.'),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_host_wrong_count_hard'] = array(
@@ -143,7 +143,7 @@ function login_security_build_admin_form() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a host is allowed. After that number is reached, the host will be blocked, no matter the username attempting to log in.'),
+    '#description' => t('Enter the number of login failures a host is allowed. After that number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not dissapear automatically and should be removed manually from the !access administration interface.', array('!access' => l('access rules', 'admin/user/rules'))),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
 
@@ -154,30 +154,30 @@ function login_security_build_admin_form() {
   $form['login_messages']['login_security_disable_core_login_error'] = array(
     '#type' => 'checkbox',
     '#title' => t('Disable login failure error message'),
-    '#description' => t('Sorry, unrecognized username or password. Have you forgotten your password?'),
+    '#description' => t('Checking this option login error messages will never be shown to the users. They will not be aware if the account exists, an invalid user name or password has been submitted or if the account is blocked. The core message "Sorry, unrecognized username or password. Have you forgotten your password?" is also hidden for the user.'),
     '#default_value' => variable_get('login_security_disable_core_login_error', LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR)
   );
   $form['login_messages']['login_security_notice_attempts_available'] = array(
     '#type' => 'checkbox',
     '#title' => t('Notify the user about the number of remaining login attempts'),
     '#default_value' => variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE),
-    '#description' => t('Security tip: If you enable this option, try to not disclose as much of your login policies as possible in the message shown on any failed login attempt.'),
+    '#description' => t('Checking this option, the user is notified about the number of remaining login attempts before the account gets blocked. Security tip: If you enable this option, try to not disclose as much of your login policies as possible in the message shown on any failed login attempt.'),
   );
   $form['login_messages']['login_security_last_login_timestamp'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display last login timestamp'),
-    '#description' => t('The last login timestamp will be displayed as a status message when users login.'),
+    '#description' => t('Checking this option, when a user does success in login, a message will remember him when was the last time he logged in the site.'),
     '#default_value' => variable_get('login_security_last_login_timestamp', 0)
   );
   $form['login_messages']['login_security_last_access_timestamp'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display last access timestamp'),
-    '#description' => t('The last access timestamp will be displayed as a status message when users login.'),
+    '#description' => t('Checking this option, when a user does success in login, a message will remember him when was the last site access with this account.'),
     '#default_value' => variable_get('login_security_last_access_timestamp', 0)
   );
   $form['login_messages']['login_security_user_blocked_email'] = array(
     '#type' => 'checkbox',
-    '#title' => t('Send email message to the admin (uid 1) when a user is blocked'),
+    '#title' => t('Send email message to the admin (uid 1) when a user is blocked by this module.'),
     '#default_value' => variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL),
   );
 
@@ -188,9 +188,8 @@ function login_security_build_admin_form() {
     '#weight' => 3,
     '#collapsible' => TRUE,
     '#collapsed' => TRUE,
-    '#description' => t("Allowed placeholders for notifications include the following: %date, %ip, %username, %email, %uid, %site, %uri, %edit_uri, %hard_block_attempts, %soft_block_attempts, %user_block_attempts, %user_ip_current_count, %ip_current_count, %user_current_count, %tracking_time")
+    '#description' => t("You may edit the notifications used by the Login Security module. Allowed placeholders for all the notifications include the following: <ul><li>%date                  :  The (formatted) date and time of the event.</li><li>%ip                    :  The IP address tracked for this event.</li><li>%username              :  The username entered in the login form (sanitized).</li><li>%email                 :  If the user exists, this will be the email address.</li><li>%uid                   :  If the user exists, this will be the user uid.</li><li>%site                  :  The name of the site as configured in the administration.</li><li>%uri                   :  The base url of this Drupal site.</li><li>%edit_uri              :  Direct link to the user (based on the name entered) edit page.</li><li>%hard_block_attempts   :  Configured maximum attempts before hard blocking the IP address.</li><li>%soft_block_attempts   :  Configured maximum attempts before soft blocking the IP address.</li><li>%user_block_attempts   :  Configured maximum login attempts before blocking the user.</li><li>%user_ip_current_count :  The total attempts for this user name tracked from this IP address.</li><li>%ip_current_count      :  The total login attempts tracked from from this IP address.</li><li>%user_current_count    :  The total login attempts tracked for this user name .</li><li>%tracking_time         :  The tracking time value: in hours.</li></ul>"),
   );
-
   $form['login_security']['Notifications']['login_security_notice_attempts_message'] = array(
     '#type' => 'textarea',
     '#title' => t('Message to be shown on each failed login attempt'),
@@ -219,12 +218,20 @@ function login_security_build_admin_form() {
     '#default_value' => variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED),
     '#description' => t('Enter the message to be shown when a user gets blocked due to enough failed login attempts.'),
   );
-  $form['login_security']['Notifications']['login_security_user_blocked_email_subject'] = array(
+
+  $form['login_security']['Notifications']['email'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Email to be sent to the administrator user (uid 1) for blocked accounts.'),
+    '#weight' => 3,
+    '#description' => t('Configure the subject and body fo the email message.'),
+  );
+
+  $form['login_security']['Notifications']['email']['login_security_user_blocked_email_subject'] = array(
     '#type' => 'textfield',
     '#title' => t('Email subject'),
     '#default_value' => variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT),
   );
-  $form['login_security']['Notifications']['login_security_user_blocked_email_body'] = array(
+  $form['login_security']['Notifications']['email']['login_security_user_blocked_email_body'] = array(
     '#type' => 'textarea',
     '#title' => t('Email body'),
     '#default_value' => variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY),
@@ -268,18 +275,14 @@ function login_security_set_login_timestamp($form, &$form_state) {
  * @url http://drupal.org/node/493164
  */
 function login_security_soft_block_validate($form, &$form_state) {
-  $variables = _login_security_get_variables_by_name(check_plain($form['name']['#value']));
+  $variables = $variables = _login_security_get_variables_by_name(check_plain($form_state['values']['name']));
   // Check for host login attempts: Soft
   if ($variables['%soft_block_attempts'] >= 1) {
     if ($variables['%ip_current_count'] >= $variables['%soft_block_attempts']) {
-      // this loop is instead of doing t() because t() can only translate static strings, not variables.
-      foreach ($variables as $key => $value) {
-        $variables[$key] = theme('placeholder', $value);
+      form_set_error('submit', login_security_t(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), $variables));
       }
-      form_set_error('submit', strtr(variable_get('login_security_host_soft_banned',  LOGIN_SECURITY_HOST_SOFT_BANNED), $variables));
     }
   }
-}
 
 /**
  * Implementation of form validate. This functions does more than just validating, but it's main
@@ -346,13 +349,10 @@ function login_security_validate($form, &$form_state) {
     $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
     if (($notice_user == TRUE) && ($variables['%user_block_attempts'] > 0) && $variables['%user_block_attempts'] >= $variables['%user_current_count']) {
         // this loop is instead of doing t() because t() can only translate static strings, not variables.
-        foreach ($variables as $key => $value) {
-          $variables[$key] = theme('placeholder', $value);
+      drupal_set_message(login_security_t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
         }
-        drupal_set_message(strtr(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
       }
     }
-  }
 
 /**
  * Remove tracked events or expire old ones.
@@ -382,7 +382,7 @@ function _login_security_remove_events($name = NULL, $ip = NULL) {
 }
 
 /**
- * Save the login attempt in the tracking database: user name and ip address.
+ * Save the login attempt in the tracking database: user name nd ip address.
  *
  * @param $name
  *   user name to be tracked.
@@ -414,7 +414,8 @@ function login_user_block_ip($variables) {
   $block->status = 0;
   drupal_write_record('access', $block);
   watchdog('login_security', 'Banned IP address %ip due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit rule'), "admin/user/rules/edit/{$block->aid}", array('query' => array('destination' => 'admin/user/rules'))));
-  form_set_error('void', t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), $variables));
+  //Using form_set_error because it may disrupt current form submission.
+  form_set_error('void', login_security_t(variable_get('login_security_host_hard_banned', LOGIN_SECURITY_HOST_HARD_BANNED), $variables));
 }
 
 /**
@@ -441,19 +442,17 @@ function login_user_block_user_name($variables) {
       // The watchdog alert is set to 'user' so it will show with other blocked user messages.
       watchdog('user', 'Blocked user %username due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit user'), "user/{$variables['%uid']}/edit", array('query' => array('destination' => 'admin/user/user'))));
       // Also notify the user that account has been blocked.
-      form_set_error('void', t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), $variables));
+      form_set_error('void', login_security_t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), $variables));
 
     // Send admin email
     if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL)) {
       $from = variable_get('site_mail', ini_get('sendmail_from'));
       $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE uid = 1"));
-      $subject = strtr(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
-      $body = strtr(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
-
+        $subject = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
+        $body = login_security_t(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
       return drupal_mail('login_security', 'notify', $admin_mail, language_default(), $variables, $from, TRUE);
     }
   }
-
 }
 }
 
@@ -488,9 +487,19 @@ function _login_security_get_variables_by_name($name) {
 function login_security_mail($key, &$message, $variables) {
   switch ($key) {
     case 'notify':
-      $message['subject'] = strtr(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
-      $message['body'] = strtr(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
+      $message['subject'] = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
+      $message['body'] = login_security_t(variable_get('login_security_user_blocked_email_mody', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
       break;
   }
+}
+
+/**
+ * This option is instead of doing t() because t() can only translate static strings, not variables.
+ */
+function login_security_t($message, $variables = array()) {
+  foreach ($variables as $key => $value) {
+    $variables[$key] = theme('placeholder', $value);
+  }
+  return strtr($message, $variables);
 }
 

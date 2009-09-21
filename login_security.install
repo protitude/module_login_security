@@ -11,26 +11,26 @@
  */
 function login_security_schema() {
   $schema['login_security_track'] = array(
-  'description' => t('Keeps track of failed login attempts and the associated IP address and user name.'),
+  'description' => t('Keeps track of failed login attempts, as a pair of the IP address and user name.'),
     'fields' => array(
       'id' => array(
         'type' => 'serial',
         'not null' => TRUE,
-        'description' => t("Hidden ID for each security event."),
+        'description' => t("ID of each login event."),
       ),
       'host' => array(
         'type' => 'varchar',
         'length' => 39,
         'not null' => TRUE,
         'default' => '',
-        'description' => t("The ip address of the connection."),
+        'description' => t("The IP address of the request."),
       ),
       'name' => array(
         'type' => 'varchar',
         'length' => 64,
         'not null' => TRUE,
         'default' => '',
-        'description' => t("Username used in the login."),
+        'description' => t("Clean username, submitted using the login form."),
       ),
       'timestamp' => array(
         'type' => 'int',
@@ -98,7 +98,7 @@ function login_security_update_6000() {
     'length' => 39,
     'not null' => TRUE,
     'default' => '',
-    'description' => t("The IP address of the connection."),
+    'description' => t("The IP address of the request."),
     )
   );
   db_add_index($ret, 'login_security_track', 'host', array('host'));
@@ -126,7 +126,7 @@ function login_security_update_6001() {
       'length' => 64,
       'not null' => TRUE,
       'default' => '',
-      'description' => t("Username used in the login submission."),
+      'description' => t("Clean username, after submitted using the login form."),
     )
   );
   db_change_field($ret, 'login_security_track', 'timestamp', 'timestamp', array(

@@ -134,30 +134,30 @@ class LoginSecurityUserBlockingTest extends DrupalWebTestCase {
     variable_set('login_security_last_access_timestamp', 1);
     $this->drupalLogin($normal_user);
     // this is the very first login ever, so there should be no previous login to show
-    $this->assertNoText(t('Your last login was '), t('Last login message not found.'));
+    $this->assertNoText(t('Your last login was'), t('Last login message not found.'));
     // even though they weren't logged in, they've been accessing pages, so this could show
     $this->assertText(t('Your last page access (site activity) was '), t('Last page access message not found.'));
 
     variable_set('login_security_last_login_timestamp', 0);
     variable_set('login_security_last_access_timestamp', 0);
     $this->drupalLogin($normal_user);
-    $this->assertNoText(t('Your last login was '), t('Last login message not found.'));
+    $this->assertNoText(t('Your last login was'), t('Last login message not found.'));
     $this->assertNoText(t('Your last page access (site activity) was '), t('Last page access message not found.'));
 
     variable_set('login_security_last_login_timestamp', 1);
     $this->drupalLogin($normal_user);
-    $this->assertText(t('Your last login was '), t('Last login message found.'));
+    $this->assertText(t('Your last login was'), t('Last login message found.'));
     $this->assertNoText(t('Your last page access (site activity) was '), t('Last page access message not found.'));
 
     variable_set('login_security_last_login_timestamp', 0);
     variable_set('login_security_last_access_timestamp', 1);
     $this->drupalLogin($normal_user);
-    $this->assertNoText(t('Your last login was '), t('Last login message not found.'));
+    $this->assertNoText(t('Your last login was'), t('Last login message not found.'));
     $this->assertText(t('Your last page access (site activity) was '), t('Last page access message found.'));
 
     variable_set('login_security_last_login_timestamp', 1);
     $this->drupalLogin($normal_user);
-    $this->assertText(t('Your last login was '), t('Last login message found.'));
+    $this->assertText(t('Your last login was'), t('Last login message found.'));
     $this->assertText(t('Your last page access (site activity) was '), t('Last page access message found.'));
   }
 

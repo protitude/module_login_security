@@ -97,12 +97,16 @@ Basic options
    count. A common example could be 24 hours. After that time, the attempt is
    deleted from the list, so it will not count.
 
+ - Delay base time. Introduces a delay in seconds for the invalid login attempts.
+   An invalid login attempt will have a punishment of these number of seconds, 
+   as a protection for password guessing attempts.
+
  - Login delay base time: Delay in seconds for the next login count. It's 
    computed by host and user, so any attempt to login again with the same user
-   from the same IP address will be delayed that number of seconds. The time the
-   user has to wait for the next login operation is (attempts * delay), and
-   the number of attempts is counted within the "Track time" time value. In the
-   previous example of 24 hours, after 24h the login attemps will be cleared,
+   from the same IP address will be punished with additional delay time. The 
+   time the user has to wait for the next login operation is (attempts * delay), 
+   and the number of attempts is counted within the "Track time" time value. In 
+   the previous example of 24 hours, after 24h the login attemps will be cleared,
    and the delay decreased.
 
  - Maximum number of login failures before blocking a user: It's that easy,
