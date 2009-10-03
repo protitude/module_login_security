@@ -162,7 +162,7 @@ function login_security_validate($form, &$form_state) {
         }
       }
     }
-    elseif ($variables['%tracking_current_count'] < ($variables['%activity_threshold'] / 3) ) {
+    elseif ((variable_get('login_security_threshold_notified', TRUE)) && ($variables['%tracking_current_count'] < ($variables['%activity_threshold'] / 3) )) {
       //Reset alert if currently tracked events is < threshold / 3
       watchdog('login_security', 'Suspicious activity in login form submissions is no longer detected: currently %tracking_current_count events are being tracked, and threshold is configured for %activity_threshold maximum allowed attempts).', $variables, WATCHDOG_NOTICE);
       variable_set('login_security_threshold_notified', FALSE);

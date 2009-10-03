@@ -78,7 +78,11 @@ function login_security_uninstall() {
   variable_del('login_security_delay_increase');
   variable_del('login_security_last_login_timestamp');
   variable_del('login_security_last_access_timestamp');
-
+  variable_del('login_security_activity_threshold');
+  variable_del('login_security_activity_email');
+  variable_del('login_security_activity_subject');
+  variable_del('login_security_activity_body');
+  variable_del('login_security_threshold_notified');
   drupal_uninstall_schema('login_security');
 }
 
