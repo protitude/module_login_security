@@ -92,7 +92,10 @@ function login_security_uninstall() {
  */
 function login_security_update_6000() {
   $ret = array();
-  db_drop_index($ret, 'login_security_track', 'host');
+  // Change current primary key
+  db_add_index($ret, 'login_security_track', 'id', array('id'));
+  db_drop_primary_key($ret, 'login_security_track');
+  db_add_primary_key($ret, 'login_security_track', array('id'));
   db_change_field($ret, 'login_security_track', 'host', 'host', array(
     'type' => 'varchar',
     'length' => 39,
@@ -102,6 +105,8 @@ function login_security_update_6000() {
     )
   );
   db_add_index($ret, 'login_security_track', 'host', array('host'));
+  db_add_index($ret, 'login_security_track', 'name', array('name'));
+  db_drop_index($ret, 'login_security_track', 'timestamp');
   return $ret;
 }
 
