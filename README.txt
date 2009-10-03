@@ -15,9 +15,9 @@ These are the features included:
 Ongoing attack detection
 ------------------------
 System will detect if a password guessing or bruteforce attack is being performed
-against the Drupal login form. Using a threshold value, you instruct the module
-to alert (using a watchdog message, and optionally send an email) the admin user
-when the number of invalid login attempts reaches the threshold value.
+against the Drupal login form. Using a threshold value, you may instruct the
+module to alert (using a watchdog message, and optionally send an email) the
+admin user when the number of invalid login attempts reaches the threshold value.
 
 Soft Protections
 ----------------
@@ -30,8 +30,12 @@ options:
  - Request time delay: on any failed login, a time delay in included to the
    submit request, hardenning the bruteforce attack to the login form. Including
    a time delay in each submission, will reduce the number of login attempts a
-   user or script can do. On each attempt, the delay time is increased, using
-   the formula: (base time) x (login attempts)
+   user or script can do. Only invalid login form submissions are affected with
+   this delay.
+
+ - Increase delay time: If you enable this option, the delay time will be 
+   increased on each invalid attempt, using the formula:
+   (base time) x (login attempts)
 
  - Invalidate login form submission: when the soft-block protection flag is 
    enabled the login form is never submited, and any new login request will
@@ -45,7 +49,7 @@ block users because of leak password guessing attempts, Hard protections may
 help defeating the system.
 
  - Block account: it's common to block an account after a number of failed login
-   attemps. Once this count is completed, the account can is blocked and user
+   attemps. Once this count is completed, the account can be blocked and user
    and admin are advised about this.
 
  - Block IP address: on a number of failed attempts, a host may be added to the 
