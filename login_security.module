@@ -19,16 +19,16 @@ define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
 define('LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR', 0);
 define('LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE', 0);
 define('LOGIN_SECURITY_ACTIVITY_THRESHOLD', 0);
-define('LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE', "You have used %user_current_count out of %user_block_attempts login attempts. After all %user_block_attempts have been used, you will be unable to login.");
-define('LOGIN_SECURITY_HOST_SOFT_BANNED', "This host is not allowed to log in to %site. Please contact your site administrator.");
-define('LOGIN_SECURITY_HOST_HARD_BANNED', "The IP address <em>%ip</em> is banned at %site, and will not be able to access any of its content from now on. Please contact the site administrator.");
-define('LOGIN_SECURITY_USER_BLOCKED', "The user <em>%username</em> has been blocked due to failed login attempts.");
+define('LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE', t("You have used %user_current_count out of %user_block_attempts login attempts. After all %user_block_attempts have been used, you will be unable to login."));
+define('LOGIN_SECURITY_HOST_SOFT_BANNED', t("This host is not allowed to log in to %site. Please contact your site administrator."));
+define('LOGIN_SECURITY_HOST_HARD_BANNED', t("The IP address <em>%ip</em> is banned at %site, and will not be able to access any of its content from now on. Please contact the site administrator."));
+define('LOGIN_SECURITY_USER_BLOCKED', t("The user <em>%username</em> has been blocked due to failed login attempts."));
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL', FALSE);
-define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT', "Security action: The user %username has been blocked.");
-define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', "The user %username (%edit_uri) has been blocked at %site due to the amount of failed login attempts. Please check the logs for more information.");
+define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT', t("Security action: The user %username has been blocked."));
+define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', t("The user %username (%edit_uri) has been blocked at %site due to the amount of failed login attempts. Please check the logs for more information."));
 define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL', FALSE);
-define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT', "Security information: Unexpected login activity has been detected at %site.");
-define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', "The configured threshold of %activity_threshold logins has been reached with a tota of %tracking_current_count invalid login attempts. You should review your log information about login attempts at %site.");
+define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT', t("Security information: Unexpected login activity has been detected at %site."));
+define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', t("The configured threshold of %activity_threshold logins has been reached with a tota of %tracking_current_count invalid login attempts. You should review your log information about login attempts at %site."));
 define('LOGIN_SECURITY_THRESHOLD_NOTIFIED', FALSE);
 
 /**
