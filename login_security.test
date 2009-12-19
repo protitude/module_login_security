@@ -164,10 +164,11 @@ class LoginSecurityUserBlockingTest extends DrupalWebTestCase {
     $this->drupalLogin($normal_user);
     $this->assertText(t('Your last login was'), t('Last login message found.'));
     $this->assertText(t('Your last page access (site activity) was '), t('Last page access message found.'));
+    $this->clickLink(t('My account'));
   }
 
   function drupalLoginLite(stdClass $user) {
-    if ($this->isLoggedIn) {
+    if ($this->loggedInUser) {
       $this->drupalLogout();
     }
 
@@ -178,7 +179,7 @@ class LoginSecurityUserBlockingTest extends DrupalWebTestCase {
     $this->drupalPost('user', $edit, t('Log in'));
     $this->assertResponse(200, t('Login page reloaded.'));
 
-    $this->isLoggedIn = TRUE;
+    $this->loggedInUser = TRUE;
   }
 }
 
