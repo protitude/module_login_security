@@ -279,6 +279,19 @@ you can use the module "Extended user status notifications":
  http://www.drupal.org/project/user_status
 
 
+Important note
+--------------
+
+Currently, user uid 1 is never blocked even if the "user blocking operation" is
+enabled. User uid 1 is widely exposed in too many sites (and probably the name
+for that account is 'admin' in most of the cases) that deliberately was removed
+from this protection because of the risk to be easily blocked. If you want to
+protect your users, you may use a combination of features, and not only rely on
+the user blocking operation.
+
+More information: http://drupal.org/node/601846
+
+
 Other notes
 -----------
 The session ID (PHP session neither Drupal's session) is not taking in count for
