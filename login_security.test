@@ -262,7 +262,7 @@ class LoginSecuritySoftBlockTest extends DrupalWebTestCase {
   }
 
   function drupalLoginLite(stdClass $user) {
-    if ($this->isLoggedIn) {
+    if ($this->loggedInUser) {
       $this->drupalLogout();
     }
 
@@ -273,6 +273,6 @@ class LoginSecuritySoftBlockTest extends DrupalWebTestCase {
     $this->drupalPost('user', $edit, t('Log in'));
     $this->assertResponse(200, t('Login page reloaded.'));
 
-    $this->isLoggedIn = TRUE;
+    $this->loggedInUser = TRUE;
   }
 }

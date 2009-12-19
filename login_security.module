@@ -223,14 +223,14 @@ function login_security_validate($form, &$form_state) {
  * @param $name
  *   if specified, events for this user name will be removed.
  *
- * @param $ip
+ * @param $host
  *   if specified, IP Address of the name-ip pair to be removed.
  */
-function _login_security_remove_events($name = NULL, $ip = NULL) {
+function _login_security_remove_events($name = NULL, $host = NULL) {
   // Remove selected events
   if (!empty($name)) {
     if (!empty($host)) {
-      db_query("DELETE FROM {login_security_track} WHERE name = '%s' AND host = '%s'", check_plain($name), check_plain(ip_address()));
+      db_query("DELETE FROM {login_security_track} WHERE name = '%s' AND host = '%s'", check_plain($name), check_plain($host));
     }
     else {
       db_query("DELETE FROM {login_security_track} WHERE name = '%s'", check_plain($name));
