@@ -44,8 +44,19 @@ function login_security_cron() {
  * Implementation of hook_menu().
  */
 function login_security_menu() {
-  module_load_include('inc', 'login_security', 'login_security.menu');
-  return _login_security_menu();
+  $items = array();
+  
+  // Administer >> Site configuration >> Login Security settings
+  $items['admin/settings/login_security'] = array(
+    'title' => 'Login Security',
+    'description' => 'Configure security settings in the login form submission.',
+    'access arguments' => array('administer site configuration'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('login_security_admin_settings'),
+    'file' => 'login_security.admin.inc',
+  );
+
+  return $items;
 }
 
 /**
