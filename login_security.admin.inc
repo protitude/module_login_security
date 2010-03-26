@@ -59,7 +59,7 @@ function login_security_admin_settings() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a host is allowed. After that amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is efective during the time indicated at tracking time opion.'),
+    '#description' => t('Enter the number of login failures a host is allowed. After that amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time opion.'),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_host_wrong_count_hard'] = array(
