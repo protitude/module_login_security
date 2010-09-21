@@ -111,17 +111,26 @@ function login_security_admin_settings() {
     '#description' => t('Checking this option, when a user does success in login, a message will remember him when was the last site access with this account.'),
     '#default_value' => variable_get('login_security_last_access_timestamp', 0)
   );
-  $form['login_messages']['login_security_user_blocked_email'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Send email message to the admin (uid 1) when a user is blocked by this module.'),
-    '#default_value' => variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL),
+  
+  $form['login_messages']['login_security_user_blocked_email_user'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Select who should get an email message when a user is blocked by this module'),
+    '#description' => t('No notification will be sent if the field is blank'),
+    '#default_value' => variable_get('login_security_user_blocked_email_user', LOGIN_SECURITY_USER_BLOCKED_EMAIL_USER),
+    '#element_validate' => array('_login_security_valid_user'),
   );
-  $form['login_messages']['login_security_login_activity_email'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Send email message to the admin (uid 1) when an ongoing attack is detected.'),
-    '#default_value' => variable_get('login_security_login_activity_email', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL),
+  $form['login_messages']['login_security_login_activity_email_user'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Select who should get an email message when an ongoing attack is detected'),
+    '#description' => t('No notification will be sent if the field is blank'),
+    '#default_value' => variable_get('login_security_login_activity_email_user', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER),
+    '#element_validate' => array('_login_security_valid_user'),
   );
-
+  
+  if (user_access('access user profiles')) {
+    $form['login_messages']['login_security_user_blocked_email_user']['#autocomplete_path'] = 'user/autocomplete';
+    $form['login_messages']['login_security_login_activity_email_user']['#autocomplete_path'] = 'user/autocomplete';
+  }
 
   $form['login_security']['Notifications'] = array(
     '#type' => 'fieldset',
@@ -162,7 +171,7 @@ function login_security_admin_settings() {
 
   $form['login_security']['Notifications']['user_block_email'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Email to be sent to the administrator user (uid 1) for blocked accounts.'),
+    '#title' => t('Email to be sent to the defined user for blocked accounts.'),
     '#weight' => 3,
     '#description' => t('Configure the subject and body of the email message.'),
   );
@@ -180,7 +189,7 @@ function login_security_admin_settings() {
 
   $form['login_security']['Notifications']['login_activity_email'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Email to be sent to the administrator user (uid 1) for ongoing attack detections.'),
+    '#title' => t('Email to be sent to the defined user for ongoing attack detections.'),
     '#weight' => 3,
     '#description' => t('Configure the subject and body of the email message.'),
   );
@@ -213,6 +222,18 @@ function login_security_admin_settings() {
 function _login_security_valid_integer($element, &$form_state) {
   if (!ctype_alnum($element['#value']) || intval($element['#value']) < 0 ) {
     form_error($element, t('The !field field should be a positive integer value greater than or equal to 0.', array('!field' => $element['#title'])));
+  }
+}
+
+/*
+ * Verify that element is a valid username
+ */
+function _login_security_valid_user($element, &$form_state) {
+  if ($element['#value'] !== '') {
+    $count = db_result(db_query("SELECT COUNT(*) FROM {users} WHERE name = '%s'", $element['#value']));
+    if (intval($count) != 1) {
+      form_error($element, t('The !field field should be a valid username.', array('!field' => $element['#title'])));
+    }
   }
 }
 

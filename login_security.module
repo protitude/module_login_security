@@ -23,10 +23,10 @@ define('LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE', t("You have used %user_current_
 define('LOGIN_SECURITY_HOST_SOFT_BANNED', t("This host is not allowed to log in to %site. Please contact your site administrator."));
 define('LOGIN_SECURITY_HOST_HARD_BANNED', t("The IP address <em>%ip</em> is banned at %site, and will not be able to access any of its content from now on. Please contact the site administrator."));
 define('LOGIN_SECURITY_USER_BLOCKED', t("The user <em>%username</em> has been blocked due to failed login attempts."));
-define('LOGIN_SECURITY_USER_BLOCKED_EMAIL', FALSE);
+define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_USER', '');
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT', t("Security action: The user %username has been blocked."));
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', t("The user %username (%edit_uri) has been blocked at %site due to the amount of failed login attempts. Please check the logs for more information."));
-define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL', FALSE);
+define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER', '');
 define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT', t("Security information: Unexpected login activity has been detected at %site."));
 define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', t("The configured threshold of %activity_threshold logins has been reached with a tota of %tracking_current_count invalid login attempts. You should review your log information about login attempts at %site."));
 define('LOGIN_SECURITY_THRESHOLD_NOTIFIED', FALSE);
@@ -164,9 +164,10 @@ function login_security_validate($form, &$form_state) {
         watchdog('login_security', 'Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently %tracking_current_count events are tracked, and threshold is configured for %activity_threshold attempts.', $variables, WATCHDOG_WARNING);
         variable_set('login_security_threshold_notified', TRUE);
         //Submit email only if required..
-        if (variable_get('login_security_login_activity_email', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL)) {
+        $login_activity_email_user = variable_get('login_security_login_activity_email_user', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER);
+        if ($login_activity_email_user !== '') {
           $from = variable_get('site_mail', ini_get('sendmail_from'));
-          $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE uid = 1"));
+          $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE name = '%s'", $login_activity_email_user));
           $subject = login_security_t(variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT), $variables);
           $body = login_security_t(variable_get('login_security_login_activity_email_body', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY), $variables);
           $mail = drupal_mail('login_security', 'login_activity_notify', $admin_mail, language_default(), $variables, $from, TRUE);
@@ -335,9 +336,10 @@ function login_user_block_user_name($variables) {
       form_set_error('void', login_security_t(variable_get('login_security_user_blocked', LOGIN_SECURITY_USER_BLOCKED), $variables));
 
       // Send admin email
-      if (variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL)) {
+      $user_blocked_email_user = variable_get('login_security_user_blocked_email_user', LOGIN_SECURITY_USER_BLOCKED_EMAIL_USER);
+      if ($user_blocked_email_user !== '') {
         $from = variable_get('site_mail', ini_get('sendmail_from'));
-        $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE uid = 1"));
+        $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE name = '%s'", $user_blocked_email_user));
         $subject = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
         $body = login_security_t(variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
         return drupal_mail('login_security', 'block_user_notify', $admin_mail, language_default(), $variables, $from, TRUE);

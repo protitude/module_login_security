@@ -72,16 +72,16 @@ function login_security_uninstall() {
   variable_del('login_security_host_soft_banned');
   variable_del('login_security_host_hard_banned');
   variable_del('login_security_user_blocked');
-  variable_del('login_security_user_blocked_email');
+  variable_del('login_security_user_blocked_email_user');
   variable_del('login_security_user_blocked_email_subject');
   variable_del('login_security_user_blocked_email_body');
   variable_del('login_security_delay_increase');
   variable_del('login_security_last_login_timestamp');
   variable_del('login_security_last_access_timestamp');
   variable_del('login_security_activity_threshold');
-  variable_del('login_security_activity_email');
-  variable_del('login_security_activity_subject');
-  variable_del('login_security_activity_body');
+  variable_del('login_security_login_activity_email_user');
+  variable_del('login_security_login_activity_subject');
+  variable_del('login_security_login_activity_body');
   variable_del('login_security_threshold_notified');
   drupal_uninstall_schema('login_security');
 }
@@ -148,5 +148,34 @@ function login_security_update_6001() {
   // Re-create indexes
   db_add_index($ret, 'login_security_track', 'name', array('name'));
   db_add_index($ret, 'login_security_track', 'timestamp', array('timestamp'));
+  return $ret;
+}
+
+/**
+ * Variable clean up update as for #866068
+ * http://drupal.org/node/866068
+ *
+ * Allows to change email recipient
+ *
+ * @return array
+ */
+function login_security_update_6002() {
+  $ret = array();
+  $admin_name = db_result(db_query('SELECT name FROM {users} WHERE uid = 1'));
+  // Adjust the 'blocked user' email notification variables
+  $blocked_email = variable_get('login_security_user_blocked_email', LOGIN_SECURITY_USER_BLOCKED_EMAIL);
+  $blocked_email_user = variable_get('login_security_user_blocked_email_user', LOGIN_SECURITY_USER_BLOCKED_EMAIL_USER);
+  if ($blocked_email && $blocked_email_user === '') {
+    variable_set('login_security_user_blocked_email_user', $admin_name);
+  }
+  // Adjust the 'suspect activity' email notification variables
+  $activity_email = variable_get('login_security_login_activity_email', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL);
+  $activity_email_user = variable_get('login_security_login_activity_email_user', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER);
+  if ($activity_email && $activity_email_user === '') {
+    variable_set('login_security_login_activity_email_user', $admin_name);
+  }
+  // Clean up the now obsolete boolean variables
+  variable_del('login_security_user_blocked_email');
+  variable_del('login_security_login_activity_email');
   return $ret;
 }

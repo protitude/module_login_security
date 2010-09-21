@@ -39,12 +39,12 @@ class LoginSecurityInterfaceTest extends DrupalWebTestCase {
     $this->assertField('login_security_host_soft_banned', t('Soft banned message field exists.'));
     $this->assertField('login_security_host_hard_banned', t('Hard banned message field exists.'));
     $this->assertField('login_security_user_blocked', t('User blocked message field exists.'));
-    $this->assertField('login_security_user_blocked_email', t('User blocked email toggle field exists.'));
+    $this->assertField('login_security_user_blocked_email_user', t('User blocked email notification user field exists.'));
     $this->assertField('login_security_user_blocked_email_subject', t('User blocked email subject field exists.'));
     $this->assertField('login_security_user_blocked_email_body', t('User blocked email body field exists'));
     $this->assertField('login_security_last_login_timestamp', t('Last login timestamp field exists.'));
     $this->assertField('login_security_last_access_timestamp', t('Last access timestamp field exists.'));
-    $this->assertField('login_security_login_activity_email', t('Send email for unexpected login activity field exists.'));
+    $this->assertField('login_security_login_activity_email_user', t('Login activity email notification user field exists.'));
     $this->assertField('login_security_login_activity_email_subject', t('Login activity email subject field exists.'));
     $this->assertField('login_security_login_activity_email_body', t('Login activity email body field exists.'));
     $this->assertField('login_security_activity_threshold', t('Invalid login threshold field exists.'));
@@ -85,7 +85,7 @@ class LoginSecurityUserBlockingTest extends DrupalWebTestCase {
 
     // in Drupal 7, we can drupalGetMails() to see if a notice went out to admin
     // in the meantime, turn the message off just in case it doesn't get caught properly yet
-    variable_set('login_security_user_blocked_email', 0);
+    variable_set('login_security_user_blocked_email_user', '');
 
     $normal_user = $this->drupalCreateUser(array('access content'));
 

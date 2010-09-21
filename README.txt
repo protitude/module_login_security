@@ -162,13 +162,12 @@ Notifications
    will be shown at all, so user will not be aware of unsuccessful login
    attempt, or blocked account messages.
 
- - Send email message to the admin about blocked accounts: An email could also
-   be sent to the administrator (uid 1), each time an account is blocked.
+ - Send a notification email message to a site user of your choice, each time an
+   account is blocked.
 
- - Send email message to the admin about login suspicious activity: An email
-   could also be sent to the administrator (uid 1), whenever suspicious activity
-   in detected in the login form submissions. When a determined value (threshold)
-   of invalid login attemps is reached, the email is sent.
+ - Send a notification email message to a site user of your choice about login
+   suspicious activity (a determined value threshold of invalid login attemps
+   is reached).
 
 Notifications are configurable in the Login Security settings section, where
 the strings could be personalized using the following placeholders:
