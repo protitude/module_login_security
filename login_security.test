@@ -107,11 +107,7 @@ class LoginSecurityUserBlockingTest extends DrupalWebTestCase {
     $this->assertFieldByName('form_id', 'user_login', t('Login form found.'));
 
     // turns back on the warning message we looked for in the previous assert
-    variable_set('login_security_notice_attempts_available', 1);
-
-    $this->drupalLoginLite($normal_user);
     $this->assertText("The user {$normal_user->name} has been blocked due to failed login attempts.", t('Blocked message displayed.'));
-    $this->assertNoText("You have used 3 out of $login_attempts_limit login attempts. After all $login_attempts_limit have been used, you will be unable to login.", t('Attempts available message displayed.'));
     $this->assertFieldByName('form_id', 'user_login', t('Login form found.'));
   }
 

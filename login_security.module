@@ -190,7 +190,7 @@ function login_security_validate($form, &$form_state) {
 
   // Check for host login attempts: Hard
   if ($variables['%hard_block_attempts'] >= 1) {
-    if ($variables['%ip_current_count'] > $variables['%hard_block_attempts']) {
+    if ($variables['%ip_current_count'] >= $variables['%hard_block_attempts']) {
       // block the host check_plain(ip_address())
       login_user_block_ip($variables);
     }
@@ -198,7 +198,7 @@ function login_security_validate($form, &$form_state) {
 
   // Check for user login attempts
   if ($variables['%user_block_attempts'] >= 1) {
-    if ($variables['%user_current_count'] > $variables['%user_block_attempts']) {
+    if ($variables['%user_current_count'] >= $variables['%user_block_attempts']) {
       // Block the account $name
       login_user_block_user_name($variables);
     }
