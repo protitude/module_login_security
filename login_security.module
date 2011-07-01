@@ -27,7 +27,7 @@ define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT', t("Security action: The user
 define('LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY', t("The user %username (%edit_uri) has been blocked at %site due to the amount of failed login attempts. Please check the logs for more information."));
 define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER', '');
 define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT', t("Security information: Unexpected login activity has been detected at %site."));
-define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', t("The configured threshold of %activity_threshold logins has been reached with a tota of %tracking_current_count invalid login attempts. You should review your log information about login attempts at %site."));
+define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', t("The configured threshold of %activity_threshold logins has been reached with a total of %tracking_current_count invalid login attempts. You should review your log information about login attempts at %site."));
 define('LOGIN_SECURITY_THRESHOLD_NOTIFIED', FALSE);
 
 /**

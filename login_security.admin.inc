@@ -21,7 +21,7 @@ function login_security_admin_settings() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('The time window where to check for security violiations: the time in hours the login information is kept to compute the login attempts count. A common example could be 24 hours. After that time, the attempt is deleted from the list, and will never be considered again.'),
+    '#description' => t('The time window to check for security violiations: the time in hours the login information is kept to compute the login attempts count. A common example could be 24 hours. After that time, the attempt is deleted from the list, and will never be considered again.'),
     '#field_suffix' => '<kbd>'. t('Hours') .'</kbd>'
   );
   $form['login_security_delay_base_time'] = array(
@@ -48,7 +48,7 @@ function login_security_admin_settings() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a user is allowed. After that amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not dissapear and should be removed manually from the !users interface.', array('!users' => l(t('user management'), 'admin/user/user'))),
+    '#description' => t('Enter the number of login failures a user is allowed. After this amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not dissapear and should be removed manually from the !users interface.', array('!users' => l(t('user management'), 'admin/user/user'))),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_host_wrong_count'] = array(
@@ -58,7 +58,7 @@ function login_security_admin_settings() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a host is allowed. After that amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time opion.'),
+    '#description' => t('Enter the number of login failures a host is allowed. After this amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time opion.'),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_host_wrong_count_hard'] = array(
@@ -68,7 +68,7 @@ function login_security_admin_settings() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a host is allowed. After that number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not dissapear automatically and should be removed manually from the !access administration interface.', array('!access' => l(t('access rules'), 'admin/user/rules'))),
+    '#description' => t('Enter the number of login failures a host is allowed. After this number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not dissapear automatically and should be removed manually from the !access administration interface.', array('!access' => l(t('access rules'), 'admin/user/rules'))),
     '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
   );
   $form['login_security_activity_threshold'] = array(
