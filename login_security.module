@@ -409,3 +409,44 @@ function login_security_help($path, $arg = NULL) {
       return '<p>' . t('Make sure you have reviewed the !README file for further information about how all these settings will affect your Drupal login form submissions.', array('!README' => l(t('README'), 'http://drupalcode.org/viewvc/drupal/contributions/modules/login_security/README.txt?view=markup&pathrev=DRUPAL-6--1'))) . '</p>';
   }
 }
+
+/**
+ * Implement hook_nagios().
+ */
+function login_security_nagios() {
+  $return = array(
+    'key' => 'login_security',
+  );
+
+  // Get the token variables.
+  $variables = _login_security_get_variables_by_name('anonymous');
+
+  // Check the threshold_notified flag for the module status.
+  $condition = variable_get('login_security_threshold_notified', 'bogus');
+  if ($condition !== 'bogus') {
+    // Attack is happening.
+    if ($condition) {
+      $status = NAGIOS_STATUS_CRITICAL;
+      $text = login_security_t(LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT, $variables);
+    }
+    // All is normal.
+    else {
+      $status = NAGIOS_STATUS_OK;
+      $text = '';
+    }
+  }
+  // Status unknown if the variable set to bogus.
+  else {
+    $status = NAGIOS_STATUS_UNKNOWN;
+    $text = t("Please check if the drupal variable login_security_threshold_notified exists.");
+  }
+
+  // Build the return data.
+  $return['login_security'] = array(
+    'status' => $status,
+    'type' => 'state',
+    'text' => $text
+  );
+
+  return $return;
+}
