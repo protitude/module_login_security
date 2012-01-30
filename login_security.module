@@ -406,7 +406,7 @@ function login_security_t($message, $variables = array()) {
 function login_security_help($path, $arg = NULL) {
   switch ($path) {
     case 'admin/settings/login_security':
-      return '<p>' . t('Make sure you have reviewed the !README file for further information about how all these settings will affect your Drupal login form submissions.', array('!README' => l(t('README'), 'http://drupalcode.org/viewvc/drupal/contributions/modules/login_security/README.txt?view=markup&pathrev=DRUPAL-6--1'))) . '</p>';
+      return '<p>' . t('Make sure you have reviewed the !README file for further information about how all these settings will affect your Drupal login form submissions.', array('!README' => l(t('README'), 'http://drupalcode.org/project/login_security.git/blob/refs/heads/6.x-1.x:/README.txt'))) . '</p>';
   }
 }
 
