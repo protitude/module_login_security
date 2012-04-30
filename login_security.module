@@ -31,7 +31,7 @@ define('LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY', t("The configured threshold o
 define('LOGIN_SECURITY_THRESHOLD_NOTIFIED', FALSE);
 
 /**
- * Implementation of hook_cron().
+ * Implements hook_cron().
  */
 function login_security_cron() {
   // Remove expired events
@@ -40,13 +40,13 @@ function login_security_cron() {
 }
 
 /**
- * Implementation of hook_menu().
+ * Implements hook_menu().
  */
 function login_security_menu() {
   $items = array();
   
   // Administer >> Site configuration >> Login Security settings
-  $items['admin/settings/login_security'] = array(
+  $items['admin/config/people/login_security'] = array(
     'title' => 'Login Security',
     'description' => 'Configure security settings in the login form submission.',
     'access arguments' => array('administer site configuration'),
@@ -59,30 +59,28 @@ function login_security_menu() {
 }
 
 /**
- * Implementation of hook_user().
+ * Implements hook_user_login().
  */
-function login_security_user($op, &$edit, &$account, $category = NULL) {
-  switch ($op) {
-    case 'login':
-      // On success login remove any temporary protection for the IP address and the username
-      _login_security_remove_events($edit['name'], ip_address());
-      break;
-    case 'update':
-      // The update case can be launched by the user or by any administrator
-      // On update, remove only the unser information tracked.
-      if ($edit['status'] != 0) {
-        // Don't remove tracking events if account is being blocked
-        _login_security_remove_events($account->name);
-      }
-      break;
-      // Cron will clean the forgotten tracking entries, including the deleted users.
+function login_security_user_login(&$edit, $account) {
+  _login_security_remove_events($edit['values']['name'], ip_address());
+}
+
+/**
+ * Implements hook_user_update().
+ */
+function login_security_user_update(&$edit, &$account, $category = NULL) {
+  // The update case can be launched by the user or by any administrator
+  // On update, remove only the unser information tracked.
+  if ($edit['status'] != 0) {
+    // Don't remove tracking events if account is being blocked
+    _login_security_remove_events($account->name);
   }
 }
 
 /**
- * Implementation of hook_form_alter().
+ * Implements hook_form_alter().
  */
-function login_security_form_alter(&$form, $form_state, $form_id) {
+function login_security_form_alter(&$form, &$form_state, $form_id) {
   switch ($form_id) {
     case 'user_login':
     case 'user_login_block':
@@ -91,9 +89,9 @@ function login_security_form_alter(&$form, $form_state, $form_id) {
       // can read the old timestamp.
       $form['#validate'] = array_merge(array('login_security_soft_block_validate', 'login_security_set_login_timestamp'), $form['#validate']);
       $form['#validate'][] = 'login_security_validate';
-      break;
-      }
+    break;
   }
+}
 
  /**
  * Previous incarnations of this code put it in hook_submit or hook_user, but since
@@ -103,7 +101,14 @@ function login_security_form_alter(&$form, $form_state, $form_id) {
  * Also we save the login attempt event here.
  */
 function login_security_set_login_timestamp($form, &$form_state) {
-  $account = user_load(array('name' => $form_state['values']['name'], 'pass' => trim($form_state['values']['pass']), 'status' => 1));
+  $uid = db_select('users', 'u')
+    ->fields('u', array('uid'))
+    ->condition('name', $form_state['values']['name'])
+    ->condition('status', 1)
+    ->execute()
+    ->fetchField();
+  $account = user_load($uid);
+
   if (variable_get('login_security_last_login_timestamp', 0) && $account->login > 0) {
     drupal_set_message(t('Your last login was !stamp', array('!stamp' => format_date($account->login, 'large'))), 'status');
   }
@@ -130,7 +135,7 @@ function login_security_soft_block_validate($form, &$form_state) {
   }
 
 /**
- * Implementation of form validate. This functions does more than just validating, but it's main
+ * Implements form validate. This functions does more than just validating, but it's main
  * Intention is to break the login form flow.
  *
  * @param $form_item
@@ -223,6 +228,7 @@ function login_security_validate($form, &$form_state) {
     $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
     if (($notice_user == TRUE) && ($variables['%user_block_attempts'] > 0) && $variables['%user_block_attempts'] >= $variables['%user_current_count']) {
       // this loop is instead of doing t() because t() can only translate static strings, not variables.
+      
       drupal_set_message(login_security_t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
       }
     }
@@ -241,15 +247,20 @@ function _login_security_remove_events($name = NULL, $host = NULL) {
   // Remove selected events
   if (!empty($name)) {
     if (!empty($host)) {
-      db_query("DELETE FROM {login_security_track} WHERE name = '%s' AND host = '%s'", check_plain($name), check_plain($host));
+      $result = db_delete('login_security_track')
+        ->condition('name',  check_plain($name))
+        ->condition('host', check_plain($host))
+        ->execute();
     }
     else {
-      db_query("DELETE FROM {login_security_track} WHERE name = '%s'", check_plain($name));
+      $result = db_delete('login_security_track')
+        ->condition('name',  check_plain($name))
+        ->execute();
     }
   }
   else {
     // Calculate protection time window and remove expired events
-    $time = time() - (variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME) * 3600);
+    $time = REQUEST_TIME - (variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME) * 3600);
     _login_security_remove_all_events($time);
   }
   return;
@@ -265,9 +276,11 @@ function _login_security_remove_events($name = NULL, $host = NULL) {
 function _login_security_remove_all_events($time = NULL) {
   // Remove selected events
   if (empty($time)) {
-    $time = time();
+    $time = REQUEST_TIME;
   }
-  db_query("DELETE FROM {login_security_track} WHERE timestamp < %d", $time);
+  $result = db_delete('login_security_track')
+    ->condition('timestamp',  $time, '<')
+    ->execute();
   return;
 }
 
@@ -286,7 +299,7 @@ function _login_security_add_event($name, $ip) {
   $event = new stdClass();
   $event->host = $ip;
   $event->name = $name;
-  $event->timestamp = time();
+  $event->timestamp = REQUEST_TIME;
   drupal_write_record('login_security_track', $event);
 }
 
@@ -322,13 +335,13 @@ function login_user_block_user_name($variables) {
     // firing the hook so user_notifications can be used.
     // db_query("UPDATE {users} SET status = 0 WHERE uid = %d", $uid);
     $uid = $variables['%uid'];
-    $account = user_load(array("uid" => $uid));
+    $account = user_load($uid);
 
     // Block account if is active.
     if ($account->status == 1) {
       user_save($account, array('status' => 0), NULL);
       // remove user from site now.
-      sess_destroy_uid($uid);
+      drupal_session_destroy_uid($uid);
       // The watchdog alert is set to 'user' so it will show with other blocked user messages.
       watchdog('user', 'Blocked user %username due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit user'), "user/{$variables['%uid']}/edit", array('query' => array('destination' => 'admin/user/user'))));
       // Also notify the user that account has been blocked.
@@ -338,7 +351,11 @@ function login_user_block_user_name($variables) {
       $user_blocked_email_user = variable_get('login_security_user_blocked_email_user', LOGIN_SECURITY_USER_BLOCKED_EMAIL_USER);
       if ($user_blocked_email_user !== '') {
         $from = variable_get('site_mail', ini_get('sendmail_from'));
-        $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE name = '%s'", $user_blocked_email_user));
+        $admin_mail =  db_select('users', 'u')
+          ->fields('u', array('mail'))
+          ->condition('name', $user_blocked_email_user)
+          ->execute()
+          ->fetchField();
         $subject = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
         $body = login_security_t(variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
         return drupal_mail('login_security', 'block_user_notify', $admin_mail, language_default(), $variables, $from, TRUE);
@@ -352,26 +369,46 @@ function login_user_block_user_name($variables) {
  * Helper function to get the variable array for the messages.
  */
 function _login_security_get_variables_by_name($name) {
-  $account = user_load(array("name" => $name));
+  $account = user_load_by_name($name);
   $ipaddress = check_plain(ip_address());
   global $base_url;
   $variables = array(
-    '%date' => format_date(time()),
+    '%date' => format_date(REQUEST_TIME),
     '%ip' => $ipaddress,
     '%username' => $account->name,
     '%email' => $account->mail,
     '%uid' => $account->uid,
     '%site' => variable_get('site_name', 'drupal'),
     '%uri' => $base_url,
-    '%edit_uri' => url('user/'. $account->uid .'/edit', array('absolute' => TRUE)),
+    '%edit_uri' => url('user/' . $account->uid . '/edit', array('absolute' => TRUE)),
     '%hard_block_attempts' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
     '%soft_block_attempts' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
     '%user_block_attempts' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
-    '%user_ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s' AND host = '%s'", $name, $ipaddress)),
-    '%ip_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE host = '%s'", $ipaddress)),
-    '%user_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track} WHERE name = '%s'", $name)),
+    '%user_ip_current_count' => db_select('login_security_track', 'lst')
+      ->fields('lst', array('id'))
+      ->condition('name', $name)
+      ->condition('host', $ipaddress)
+      ->countQuery()
+      ->execute()
+      ->fetchField(),
+    '%ip_current_count' => db_select('login_security_track', 'lst')
+      ->fields('lst', array('id'))
+      ->condition('host', $ipaddress)
+      ->countQuery()
+      ->execute()
+      ->fetchField(),
+    '%user_current_count' => db_select('login_security_track', 'lst')
+      ->fields('lst', array('id'))
+      ->condition('name', $name)
+      ->countQuery()
+      ->execute()
+      ->fetchField(),
     '%tracking_time' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
-    '%tracking_current_count' => db_result(db_query("SELECT COUNT(id) FROM {login_security_track}")),
+    '%tracking_current_count' => db_select('login_security_track', 'lst')
+      ->fields('lst', array('id'))
+      ->countQuery()
+      ->execute()
+      ->fetchField(),
     '%activity_threshold' => variable_get('login_security_activity_threshold', LOGIN_SECURITY_ACTIVITY_THRESHOLD),
   );
   return $variables;
@@ -395,13 +432,13 @@ function login_security_mail($key, &$message, $variables) {
  */
 function login_security_t($message, $variables = array()) {
   foreach ($variables as $key => $value) {
-    $variables[$key] = theme('placeholder', $value);
+    $variables[$key] = drupal_placeholder($value);
   }
   return strtr($message, $variables);
 }
 
 /**
- * Implementation of hook_help().
+ * Implements hook_help().
  */
 function login_security_help($path, $arg = NULL) {
   switch ($path) {

@@ -16,7 +16,6 @@ class LoginSecurityInterfaceTest extends DrupalWebTestCase {
 
   function setUp() {
     parent::setUp('login_security');
-
     // Create and login user
     $admin_user = $this->drupalCreateUser(array('administer site configuration'));
     $this->drupalLogin($admin_user);
@@ -25,7 +24,7 @@ class LoginSecurityInterfaceTest extends DrupalWebTestCase {
   }
 
   function testAdminUserSettings() {
-    $this->drupalGet('admin/settings/login_security');
+    $this->drupalGet('admin/config/people/login_security');
     $this->assertResponse(200, t('Access granted to settings page.'));
     $this->assertField('login_security_track_time', t('Track time field exists.'));
     $this->assertField('login_security_delay_base_time', t('Delay base time field exists.'));
@@ -68,7 +67,7 @@ class LoginSecurityUserBlockingTest extends DrupalWebTestCase {
     variable_set('login_security_track_time', 1);
   }
 
-  // Check if login is break somewhere
+  // Check if login is broken somewhere
   function testLogin() {
     variable_set('login_security_user_wrong_count', 5);
     $normal_user = $this->drupalCreateUser(array('access content'));
@@ -135,8 +134,6 @@ class LoginSecurityUserBlockingTest extends DrupalWebTestCase {
     $this->drupalLogin($normal_user);
     // this is the very first login ever, so there should be no previous login to show
     $this->assertNoText(t('Your last login was'), t('Last login message not found.'));
-    // even though they weren't logged in, they've been accessing pages, so this could show
-    $this->assertText(t('Your last page access (site activity) was '), t('Last page access message not found.'));
 
     variable_set('login_security_last_login_timestamp', 0);
     variable_set('login_security_last_access_timestamp', 0);

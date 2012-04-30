@@ -22,7 +22,7 @@ function login_security_admin_settings() {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('The time window to check for security violiations: the time in hours the login information is kept to compute the login attempts count. A common example could be 24 hours. After that time, the attempt is deleted from the list, and will never be considered again.'),
-    '#field_suffix' => '<kbd>'. t('Hours') .'</kbd>'
+    '#field_suffix' => '<kbd>' . t('Hours') . '</kbd>'
   );
   $form['login_security_delay_base_time'] = array(
     '#type' => 'textfield',
@@ -32,7 +32,7 @@ function login_security_admin_settings() {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Delay in seconds for the login process: any invalid login attempt will have a punishment of these seconds, as a protection for password guessing attempts.'),
-    '#field_suffix' => '<kbd>'. t('Seconds') .'</kbd>'
+    '#field_suffix' => '<kbd>' . t('Seconds') . '</kbd>'
   );
   $form['login_security_delay_increase'] = array(
     '#type' => 'radios',
@@ -49,7 +49,7 @@ function login_security_admin_settings() {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the number of login failures a user is allowed. After this amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not dissapear and should be removed manually from the !users interface.', array('!users' => l(t('user management'), 'admin/user/user'))),
-    '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
+    '#field_suffix' => '<kbd>' . t('Failed attempts') . '</kbd>'
   );
   $form['login_security_host_wrong_count'] = array(
     '#type' => 'textfield',
@@ -59,7 +59,7 @@ function login_security_admin_settings() {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the number of login failures a host is allowed. After this amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time opion.'),
-    '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
+    '#field_suffix' => '<kbd>' . t('Failed attempts') . '</kbd>'
   );
   $form['login_security_host_wrong_count_hard'] = array(
     '#type' => 'textfield',
@@ -69,7 +69,7 @@ function login_security_admin_settings() {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the number of login failures a host is allowed. After this number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not dissapear automatically and should be removed manually from the !access administration interface.', array('!access' => l(t('access rules'), 'admin/user/rules'))),
-    '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
+    '#field_suffix' => '<kbd>' . t('Failed attempts') . '</kbd>'
   );
   $form['login_security_activity_threshold'] = array(
     '#type' => 'textfield',
@@ -79,7 +79,7 @@ function login_security_admin_settings() {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the number of login failures before creating a warning log entry about this suspicious activity. If the number of invalid login events currently being tracked reach this number, and ongoing attack is detected.'),
-    '#field_suffix' => '<kbd>'. t('Failed attempts') .'</kbd>'
+    '#field_suffix' => '<kbd>' . t('Failed attempts') . '</kbd>'
   );
 
   $form['login_messages'] = array(
@@ -229,7 +229,11 @@ function _login_security_valid_integer($element, &$form_state) {
  */
 function _login_security_valid_user($element, &$form_state) {
   if ($element['#value'] !== '') {
-    $count = db_result(db_query("SELECT COUNT(*) FROM {users} WHERE name = '%s'", $element['#value']));
+    $count = db_select('users', 'u')
+      ->condition('name', $element['#value'])
+      ->countQuery()
+      ->execute()
+      ->fetchField();
     if (intval($count) != 1) {
       form_error($element, t('The !field field should be a valid username.', array('!field' => $element['#title'])));
     }
