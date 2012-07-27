@@ -20,7 +20,6 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_track_time', LOGIN_SECURITY_TRACK_TIME),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
     '#description' => t('The time window to check for security violations: the time in hours the login information is kept to compute the login attempts count. A common example could be 24 hours. After that time, the attempt is deleted from the list, and will never be considered again.'),
     '#field_suffix' => t('Hours'),
   );
@@ -30,7 +29,6 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_delay_base_time', LOGIN_SECURITY_BASE_TIME),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
     '#description' => t('Delay in seconds for the login process: any invalid login attempt will have a punishment of these seconds, as a protection for password guessing attempts.'),
     '#field_suffix' => t('Seconds'),
   );
@@ -47,7 +45,6 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_user_wrong_count', LOGIN_SECURITY_USER_WRONG_COUNT),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
     '#description' => t('Enter the number of login failures a user is allowed. After this amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not disappear and should be removed manually from the <a href="!user">user management</a> interface.', array('!user' => '/admin/people')),
     '#field_suffix' => t('Failed attempts'),
   );
@@ -57,7 +54,6 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_HOST_WRONG_COUNT),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
     '#description' => t('Enter the number of login failures a host is allowed. After this amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time opion.'),
     '#field_suffix' => t('Failed attempts'),
   );
@@ -67,7 +63,6 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_host_wrong_count_hard', LOGIN_SECURITY_HOST_WRONG_COUNT_HARD),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
     '#description' => t('Enter the number of login failures a host is allowed. After this number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not disappear automatically and should be removed manually from the <a href="!access">access rules</a> administration interface.', array('!access' => '/admin/config/people/ip-blocking')),
     '#field_suffix' => t('Failed attempts'),
   );
@@ -77,7 +72,6 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_activity_threshold', LOGIN_SECURITY_ACTIVITY_THRESHOLD),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#maxlength' => 3,
     '#description' => t('Enter the number of login failures before creating a warning log entry about this suspicious activity. If the number of invalid login events currently being tracked reach this number, and ongoing attack is detected.'),
     '#field_suffix' => t('Failed attempts'),
   );
