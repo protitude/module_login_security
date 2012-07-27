@@ -4,7 +4,6 @@
  * @file
  * Login Security
  *
- * GPL published.. if you don't have a copy of the license, search for it, it's free
  * Copyrighted by ilo@reversing.org
  * Thanks to christefano for the module tips and strings
  */
@@ -414,6 +413,9 @@ function _login_security_get_variables_by_name($name) {
   return $variables;
 }
 
+/**
+ * Implements hook_mail().
+ */
 function login_security_mail($key, &$message, $variables) {
   switch ($key) {
     case 'block_user_notify':
@@ -443,7 +445,7 @@ function login_security_t($message, $variables = array()) {
 function login_security_help($path, $arg = NULL) {
   switch ($path) {
     case 'admin/settings/login_security':
-      return '<p>' . t('Make sure you have reviewed the !README file for further information about how all these settings will affect your Drupal login form submissions.', array('!README' => l(t('README'), 'http://drupalcode.org/project/login_security.git/blob/refs/heads/6.x-1.x:/README.txt'))) . '</p>';
+      return '<p>' . t('Make sure you have reviewed the <a href="!README">README file</a> for further information about how all these settings will affect your Drupal login form submissions.', array('!README' => 'http://drupalcode.org/project/login_security.git/blob/refs/heads/6.x-1.x:/README.txt')) . '</p>';
   }
 }
 

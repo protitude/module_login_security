@@ -22,7 +22,7 @@ function login_security_admin_settings() {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('The time window to check for security violations: the time in hours the login information is kept to compute the login attempts count. A common example could be 24 hours. After that time, the attempt is deleted from the list, and will never be considered again.'),
-    '#field_suffix' => '<kbd>' . t('Hours') . '</kbd>'
+    '#field_suffix' => t('Hours'),
   );
   $form['login_security_delay_base_time'] = array(
     '#type' => 'textfield',
@@ -32,7 +32,7 @@ function login_security_admin_settings() {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Delay in seconds for the login process: any invalid login attempt will have a punishment of these seconds, as a protection for password guessing attempts.'),
-    '#field_suffix' => '<kbd>' . t('Seconds') . '</kbd>'
+    '#field_suffix' => t('Seconds'),
   );
   $form['login_security_delay_increase'] = array(
     '#type' => 'radios',
@@ -48,8 +48,8 @@ function login_security_admin_settings() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a user is allowed. After this amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not disappear and should be removed manually from the !users interface.', array('!users' => l(t('user management'), 'admin/user/user'))),
-    '#field_suffix' => '<kbd>' . t('Failed attempts') . '</kbd>'
+    '#description' => t('Enter the number of login failures a user is allowed. After this amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not disappear and should be removed manually from the <a href="!user">user management</a> interface.', array('!user' => '/admin/people')),
+    '#field_suffix' => t('Failed attempts'),
   );
   $form['login_security_host_wrong_count'] = array(
     '#type' => 'textfield',
@@ -59,7 +59,7 @@ function login_security_admin_settings() {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the number of login failures a host is allowed. After this amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time opion.'),
-    '#field_suffix' => '<kbd>' . t('Failed attempts') . '</kbd>'
+    '#field_suffix' => t('Failed attempts'),
   );
   $form['login_security_host_wrong_count_hard'] = array(
     '#type' => 'textfield',
@@ -68,8 +68,8 @@ function login_security_admin_settings() {
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
     '#maxlength' => 3,
-    '#description' => t('Enter the number of login failures a host is allowed. After this number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not disappear automatically and should be removed manually from the !access administration interface.', array('!access' => l(t('access rules'), 'admin/user/rules'))),
-    '#field_suffix' => '<kbd>' . t('Failed attempts') . '</kbd>'
+    '#description' => t('Enter the number of login failures a host is allowed. After this number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not disappear automatically and should be removed manually from the <a href="!access">access rules</a> administration interface.', array('!access' => '/admin/config/people/ip-blocking')),
+    '#field_suffix' => t('Failed attempts'),
   );
   $form['login_security_activity_threshold'] = array(
     '#type' => 'textfield',
@@ -79,7 +79,7 @@ function login_security_admin_settings() {
     '#size' => 3,
     '#maxlength' => 3,
     '#description' => t('Enter the number of login failures before creating a warning log entry about this suspicious activity. If the number of invalid login events currently being tracked reach this number, and ongoing attack is detected.'),
-    '#field_suffix' => '<kbd>' . t('Failed attempts') . '</kbd>'
+    '#field_suffix' => t('Failed attempts'),
   );
 
   $form['login_messages'] = array(
@@ -90,7 +90,7 @@ function login_security_admin_settings() {
     '#type' => 'checkbox',
     '#title' => t('Disable login failure error message'),
     '#description' => t('Checking this option login error messages will never be shown to the users. They will not be aware if the account exists, an invalid user name or password has been submitted or if the account is blocked. The core message "Sorry, unrecognized username or password. Have you forgotten your password?" is also hidden for the user.'),
-    '#default_value' => variable_get('login_security_disable_core_login_error', LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR)
+    '#default_value' => variable_get('login_security_disable_core_login_error', LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR),
   );
   $form['login_messages']['login_security_notice_attempts_available'] = array(
     '#type' => 'checkbox',
@@ -102,13 +102,13 @@ function login_security_admin_settings() {
     '#type' => 'checkbox',
     '#title' => t('Display last login timestamp'),
     '#description' => t('Checking this option, when a user successfully logs in, a message will display the last time he logged into the site.'),
-    '#default_value' => variable_get('login_security_last_login_timestamp', 0)
+    '#default_value' => variable_get('login_security_last_login_timestamp', 0),
   );
   $form['login_messages']['login_security_last_access_timestamp'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display last access timestamp'),
-    '#description' => t('Checking this option, when a user successfully logs in, a message will displa the last site access with this account.'),
-    '#default_value' => variable_get('login_security_last_access_timestamp', 0)
+    '#description' => t('Checking this option, when a user successfully logs in, a message will display the last site access with this account.'),
+    '#default_value' => variable_get('login_security_last_access_timestamp', 0),
   );
   
   $form['login_messages']['login_security_user_blocked_email_user'] = array(
@@ -216,7 +216,7 @@ function login_security_admin_settings() {
 }
 
 /*
- * Verify that element is a positive integer value
+ * Verify that element is a positive integer value.
  */
 function _login_security_valid_integer($element, &$form_state) {
   if (!ctype_alnum($element['#value']) || intval($element['#value']) < 0 ) {
@@ -225,7 +225,7 @@ function _login_security_valid_integer($element, &$form_state) {
 }
 
 /*
- * Verify that element is a valid username
+ * Verify that element is a valid username.
  */
 function _login_security_valid_user($element, &$form_state) {
   if ($element['#value'] !== '') {
