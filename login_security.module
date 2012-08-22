@@ -106,6 +106,9 @@ function login_security_set_login_timestamp($form, &$form_state) {
     ->condition('status', 1)
     ->execute()
     ->fetchField();
+  if (empty($uid)) {
+    return;
+  }
   $account = user_load($uid);
 
   if (variable_get('login_security_last_login_timestamp', 0) && $account->login > 0) {
