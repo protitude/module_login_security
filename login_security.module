@@ -61,7 +61,7 @@ function login_security_menu() {
  * Implements hook_user_login().
  */
 function login_security_user_login(&$edit, $account) {
-  _login_security_remove_events($edit['values']['name'], ip_address());
+  _login_security_remove_events($account->name, ip_address());
 }
 
 /**
