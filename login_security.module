@@ -127,7 +127,7 @@ function login_security_set_login_timestamp($form, &$form_state) {
  * @url http://drupal.org/node/493164
  */
 function login_security_soft_block_validate($form, &$form_state) {
-  $variables = $variables = _login_security_get_variables_by_name(check_plain($form_state['values']['name']));
+  $variables = _login_security_get_variables_by_name(check_plain($form_state['values']['name']));
   // Check for host login attempts: Soft
   if ($variables['%soft_block_attempts'] >= 1) {
     if ($variables['%ip_current_count'] >= $variables['%soft_block_attempts']) {
