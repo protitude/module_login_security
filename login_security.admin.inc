@@ -104,7 +104,7 @@ function login_security_admin_settings() {
     '#description' => t('Checking this option, when a user successfully logs in, a message will display the last site access with this account.'),
     '#default_value' => variable_get('login_security_last_access_timestamp', 0),
   );
-  
+
   $form['login_messages']['login_security_user_blocked_email_user'] = array(
     '#type' => 'textfield',
     '#title' => t('Select who should get an email message when a user is blocked by this module'),
@@ -119,7 +119,7 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_login_activity_email_user', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER),
     '#element_validate' => array('_login_security_valid_user'),
   );
-  
+
   if (user_access('access user profiles')) {
     $form['login_messages']['login_security_user_blocked_email_user']['#autocomplete_path'] = 'user/autocomplete';
     $form['login_messages']['login_security_login_activity_email_user']['#autocomplete_path'] = 'user/autocomplete';
