@@ -214,7 +214,7 @@ function login_security_admin_settings() {
  */
 function _login_security_valid_integer($element, &$form_state) {
   if (!ctype_alnum($element['#value']) || intval($element['#value']) < 0 ) {
-    form_error($element, t('The !field field should be a positive integer value greater than or equal to 0.', array('!field' => $element['#title'])));
+    form_error($element, t('The @field field should be a positive integer value greater than or equal to 0.', array('@field' => $element['#title'])));
   }
 }
 
@@ -229,7 +229,7 @@ function _login_security_valid_user($element, &$form_state) {
       ->execute()
       ->fetchField();
     if (intval($count) != 1) {
-      form_error($element, t('The !field field should be a valid username.', array('!field' => $element['#title'])));
+      form_error($element, t('The @field field should be a valid username.', array('@field' => $element['#title'])));
     }
   }
 }

@@ -43,7 +43,7 @@ function login_security_cron() {
  */
 function login_security_menu() {
   $items = array();
-  
+
   // Administer >> Site configuration >> Login Security settings
   $items['admin/config/people/login_security'] = array(
     'title' => 'Login Security',
@@ -112,10 +112,10 @@ function login_security_set_login_timestamp($form, &$form_state) {
   $account = user_load($uid);
 
   if (variable_get('login_security_last_login_timestamp', 0) && $account->login > 0) {
-    drupal_set_message(t('Your last login was !stamp', array('!stamp' => format_date($account->login, 'large'))), 'status');
+    drupal_set_message(t('Your last login was @stamp', array('@stamp' => format_date($account->login, 'large'))), 'status');
   }
   if (variable_get('login_security_last_access_timestamp', 0) && $account->access > 0) {
-    drupal_set_message(t('Your last page access (site activity) was !stamp', array('!stamp' => format_date($account->access, 'large'))), 'status');
+    drupal_set_message(t('Your last page access (site activity) was @stamp', array('@stamp' => format_date($account->access, 'large'))), 'status');
   }
     // Save entry in security log, Username and IP Address
   _login_security_add_event(check_plain($form_state['values']['name']), check_plain(ip_address()));
@@ -230,7 +230,7 @@ function login_security_validate($form, &$form_state) {
     $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
     if (($notice_user == TRUE) && ($variables['%user_block_attempts'] > 0) && $variables['%user_block_attempts'] >= $variables['%user_current_count']) {
       // this loop is instead of doing t() because t() can only translate static strings, not variables.
-      
+
       drupal_set_message(login_security_t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
       }
     }

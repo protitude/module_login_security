@@ -2,11 +2,11 @@
 
 /**
  * @file
- * Login Security installation routines
+ * Login Security installation routines.
  */
 
 /**
- * Implementation of hook_schema().
+ * Implements hook_schema().
  */
 function login_security_schema() {
   $schema['login_security_track'] = array(
@@ -50,14 +50,14 @@ function login_security_schema() {
 }
 
 /**
- * Implementation of hook_install().
+ * Implements hook_install().
  */
 function login_security_install() {
 
 }
 
 /**
- * Implementation of hook_uninstall().
+ * Implements hook_uninstall().
  */
 function login_security_uninstall() {
   variable_del('login_security_track_time');

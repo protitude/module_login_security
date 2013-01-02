@@ -46,7 +46,7 @@ class LoginSecurityInterfaceTest extends DrupalWebTestCase {
     $this->assertField('login_security_login_activity_email_subject', t('Login activity email subject field exists.'));
     $this->assertField('login_security_login_activity_email_body', t('Login activity email body field exists.'));
     $this->assertField('login_security_activity_threshold', t('Invalid login threshold field exists.'));
-    
+
   }
 }
 
