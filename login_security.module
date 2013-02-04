@@ -88,6 +88,7 @@ function login_security_form_alter(&$form, &$form_state, $form_id) {
       // can read the old timestamp.
       $form['#validate'] = array_merge(array('login_security_soft_block_validate', 'login_security_set_login_timestamp'), $form['#validate']);
       $form['#validate'][] = 'login_security_validate';
+      $form['#submit'][] = 'login_security_submit';
     break;
   }
 }
@@ -111,14 +112,27 @@ function login_security_set_login_timestamp($form, &$form_state) {
   }
   $account = user_load($uid);
 
-  if (variable_get('login_security_last_login_timestamp', 0) && $account->login > 0) {
-    drupal_set_message(t('Your last login was @stamp', array('@stamp' => format_date($account->login, 'large'))), 'status');
-  }
-  if (variable_get('login_security_last_access_timestamp', 0) && $account->access > 0) {
-    drupal_set_message(t('Your last page access (site activity) was @stamp', array('@stamp' => format_date($account->access, 'large'))), 'status');
-  }
-    // Save entry in security log, Username and IP Address
+  _login_security_login_timestamp($account->login);
+  _login_security_access_timestamp($account->access);
+
+  // Save entry in security log, Username and IP Address
   _login_security_add_event(check_plain($form_state['values']['name']), check_plain(ip_address()));
+}
+
+function _login_security_login_timestamp($login = NULL) {
+  static $account_login;
+if (!isset($account_login) && is_numeric($login) && $login > 0) {
+    $account_login = $login;
+  }
+  return $account_login;
+}
+
+function _login_security_access_timestamp($access = NULL) {
+  static $account_access;
+  if (!isset($account_access) && is_numeric($access) && $access > 0) {
+    $account_access = $access;
+  }
+  return $account_access;
 }
 
 /**
@@ -215,7 +229,8 @@ function login_security_validate($form, &$form_state) {
   global $user;
 
   // login failed
-  if ($user->uid == 0) {
+  $failure_message = preg_grep("/<a href=\"\/user\/password\">/", $_SESSION['messages']['error']);
+  if (user_is_anonymous() && isset($_SESSION['messages']['error']) && !empty($failure_message)) {
     if (variable_get('login_security_disable_core_login_error', LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR)) {
       // resets the form error status so no form fields are highlighted in red
       form_set_error(NULL, '', TRUE);
@@ -232,9 +247,26 @@ function login_security_validate($form, &$form_state) {
       // this loop is instead of doing t() because t() can only translate static strings, not variables.
 
       drupal_set_message(login_security_t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
-      }
     }
   }
+}
+
+function login_security_submit($form, &$form_state) {
+  // the submit handler shouldn't be called unless the authentication succeeded.
+
+  if (user_is_logged_in()) {
+
+    $login = _login_security_login_timestamp();
+    if (variable_get('login_security_last_login_timestamp', 0) && $login > 0) {
+      drupal_set_message(t('Your last login was @stamp.', array('@stamp' => format_date($login, 'large'))), 'status');
+    }
+
+    $access = _login_security_access_timestamp();
+    if (variable_get('login_security_last_access_timestamp', 0) && $access > 0) {
+      drupal_set_message(t('Your last page access (site activity) was @stamp.', array('@stamp' => format_date($access, 'large'))), 'status');
+    }
+  }
+}
 
 /**
  * Remove tracked events or expire old ones.
