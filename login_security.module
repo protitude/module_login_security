@@ -187,9 +187,7 @@ function login_security_validate($form, &$form_state) {
         $login_activity_email_user = variable_get('login_security_login_activity_email_user', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_USER);
         if ($login_activity_email_user !== '') {
           $from = variable_get('site_mail', ini_get('sendmail_from'));
-          $admin_mail =  db_result(db_query("SELECT mail FROM {users} WHERE name = '%s'", $login_activity_email_user));
-          $subject = login_security_t(variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT), $variables);
-          $body = login_security_t(variable_get('login_security_login_activity_email_body', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY), $variables);
+          $admin_mail = db_result(db_query("SELECT mail FROM {users} WHERE name = '%s'", $login_activity_email_user));
           $mail = drupal_mail('login_security', 'login_activity_notify', $admin_mail, language_default(), $variables, $from, TRUE);
         }
       }
@@ -392,8 +390,6 @@ function login_user_block_user_name($variables) {
           ->condition('name', $user_blocked_email_user)
           ->execute()
           ->fetchField();
-        $subject = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
-        $body = login_security_t(variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
         return drupal_mail('login_security', 'block_user_notify', $admin_mail, language_default(), $variables, $from, TRUE);
       }
     }
