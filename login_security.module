@@ -229,24 +229,26 @@ function login_security_validate($form, &$form_state) {
   global $user;
 
   // login failed
-  $failure_message = preg_grep("/<a href=\"\/user\/password\">/", $_SESSION['messages']['error']);
-  if (user_is_anonymous() && isset($_SESSION['messages']['error']) && !empty($failure_message)) {
-    if (variable_get('login_security_disable_core_login_error', LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR)) {
-      // resets the form error status so no form fields are highlighted in red
-      form_set_error(NULL, '', TRUE);
+  if (isset($_SESSION['messages']['error'])) {
+    $failure_message = preg_grep("/<a href=\"\/user\/password\">/", $_SESSION['messages']['error']);
+    if (user_is_anonymous() && !empty($failure_message)) {
+      if (variable_get('login_security_disable_core_login_error', LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR)) {
+        // resets the form error status so no form fields are highlighted in red
+        form_set_error(NULL, '', TRUE);
 
-      // removes "Sorry, unrecognized username or password. Have you forgotten your password?"
-      // and any other errors that might be helpful to an attacker
-      // it should not reset the attempts message because it is a warning, not an error
-      unset($_SESSION['messages']['error']);
-    }
+        // removes "Sorry, unrecognized username or password. Have you forgotten your password?"
+        // and any other errors that might be helpful to an attacker
+        // it should not reset the attempts message because it is a warning, not an error
+        unset($_SESSION['messages']['error']);
+      }
 
-    // Should the user be advised about the remaining login attempts?
-    $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
-    if (($notice_user == TRUE) && ($variables['%user_block_attempts'] > 0) && $variables['%user_block_attempts'] >= $variables['%user_current_count']) {
-      // this loop is instead of doing t() because t() can only translate static strings, not variables.
+      // Should the user be advised about the remaining login attempts?
+      $notice_user = variable_get('login_security_notice_attempts_available', LOGIN_SECURITY_NOTICE_ATTEMPTS_AVAILABLE);
+      if (($notice_user == TRUE) && ($variables['%user_block_attempts'] > 0) && $variables['%user_block_attempts'] >= $variables['%user_current_count']) {
+        // this loop is instead of doing t() because t() can only translate static strings, not variables.
 
-      drupal_set_message(login_security_t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
+        drupal_set_message(login_security_t(variable_get('login_security_notice_attempts_message', LOGIN_SECURITY_NOTICE_ATTEMPTS_MESSAGE), $variables), 'warning');
+      }
     }
   }
 }
