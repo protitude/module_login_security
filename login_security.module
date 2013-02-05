@@ -86,7 +86,15 @@ function login_security_form_alter(&$form, &$form_state, $form_id) {
       // Put login_security first or the capture of the previous login timestamp won't work
       // and core's validation will update to the current login instance before login_security
       // can read the old timestamp.
-      $form['#validate'] = array_merge(array('login_security_soft_block_validate', 'login_security_set_login_timestamp'), $form['#validate']);
+      $validate = array('login_security_soft_block_validate', 'login_security_set_login_timestamp');
+
+      if (isset($form['#validate']) && is_array($form['#validate'])) {
+        $form['#validate'] = array_merge($validate, $form['#validate']);
+      }
+      else {
+        $form['#validate'] = $validate;
+      }
+
       $form['#validate'][] = 'login_security_validate';
       $form['#submit'][] = 'login_security_submit';
     break;
