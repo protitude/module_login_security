@@ -70,7 +70,7 @@ function login_security_user_login(&$edit, $account) {
 function login_security_user_update(&$edit, &$account, $category = NULL) {
   // The update case can be launched by the user or by any administrator
   // On update, remove only the unser information tracked.
-  if ($edit['status'] != 0) {
+  if ($account->status != 0) {
     // Don't remove tracking events if account is being blocked
     _login_security_remove_events($account->name);
   }
