@@ -109,19 +109,18 @@ function login_security_form_alter(&$form, &$form_state, $form_id) {
  * Also we save the login attempt event here.
  */
 function login_security_set_login_timestamp($form, &$form_state) {
-  $uid = db_select('users', 'u')
-    ->fields('u', array('uid'))
+  $account = db_select('users', 'u')
+    ->fields('u', array('login', 'access'))
     ->condition('name', $form_state['values']['name'])
     ->condition('status', 1)
     ->execute()
-    ->fetchField();
-  if (empty($uid)) {
+    ->fetchAssoc();
+  if (empty($account)) {
     return;
   }
-  $account = user_load($uid);
 
-  _login_security_login_timestamp($account->login);
-  _login_security_access_timestamp($account->access);
+  _login_security_login_timestamp($account['login']);
+  _login_security_access_timestamp($account['access']);
 
   // Save entry in security log, Username and IP Address
   _login_security_add_event(check_plain($form_state['values']['name']), check_plain(ip_address()));
