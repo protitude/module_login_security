@@ -54,7 +54,7 @@ function login_security_admin_settings() {
     '#default_value' => variable_get('login_security_host_wrong_count', LOGIN_SECURITY_HOST_WRONG_COUNT),
     '#element_validate' => array('_login_security_valid_integer'),
     '#size' => 3,
-    '#description' => t('Enter the number of login failures a host is allowed. After this amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time opion.'),
+    '#description' => t('Enter the number of login failures a host is allowed. After this amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time option.'),
     '#field_suffix' => t('Failed attempts'),
   );
   $form['login_security_host_wrong_count_hard'] = array(
