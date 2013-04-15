@@ -234,7 +234,7 @@ function login_security_validate($form, &$form_state) {
   global $user;
 
   // login failed
-  $messages = drupal_get_messages('error');
+  $messages = drupal_get_messages('error', FALSE);
   if (!empty($messages['error'])) {
     $failure_message = preg_grep("/<a href=\"\/user\/password\">/", $messages['error']);
     if (user_is_anonymous() && !empty($failure_message)) {
