@@ -9,8 +9,6 @@
  */
 
 define('LOGIN_SECURITY_TRACK_TIME', 1);
-define('LOGIN_SECURITY_BASE_TIME', 0);
-define('LOGIN_SECURITY_DELAY_INCREASE', 0);
 define('LOGIN_SECURITY_USER_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT', 0);
 define('LOGIN_SECURITY_HOST_WRONG_COUNT_HARD', 0);
@@ -204,14 +202,6 @@ function login_security_validate($form, &$form_state) {
       watchdog('login_security', 'Suspicious activity in login form submissions is no longer detected: currently @tracking_current_count events are being tracked, and threshold is configured for @activity_threshold maximum allowed attempts).', $variables, WATCHDOG_NOTICE);
       variable_set('login_security_threshold_notified', FALSE);
     }
-  }
-
-  // then, start with login Delay
-  if ($delay = variable_get('login_security_delay_base_time', LOGIN_SECURITY_BASE_TIME)) {
-    $secs = (variable_get('login_security_delay_increase', LOGIN_SECURITY_DELAY_INCREASE) == 1) ? intval($variables['@user_ip_current_count']-1) * intval($delay) : intval($delay);
-    //Included 0 just in case of 'max_execution_time' being lower than 3
-    $sleep_time  = max(0, min(ini_get('max_execution_time') - 3, $secs));
-    @sleep($sleep_time);
   }
 
   // Check for host login attempts: Hard
