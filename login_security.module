@@ -400,6 +400,10 @@ function login_user_block_user_name($variables) {
  */
 function _login_security_get_variables_by_name($name) {
   $account = user_load_by_name($name);
+  // https://drupal.org/node/1744704
+  if (empty($account)) {
+    $account = user_load(0);
+  }
   $ipaddress = ip_address();
   global $base_url;
   $variables = array(
