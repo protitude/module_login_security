@@ -27,8 +27,6 @@ class LoginSecurityInterfaceTest extends DrupalWebTestCase {
     $this->drupalGet('admin/config/people/login_security');
     $this->assertResponse(200, t('Access granted to settings page.'));
     $this->assertField('login_security_track_time', t('Track time field exists.'));
-    $this->assertField('login_security_delay_base_time', t('Delay base time field exists.'));
-    $this->assertField('login_security_delay_increase', t('Delay increase field exists.'));
     $this->assertField('login_security_user_wrong_count', t('User wrong count field exists.'));
     $this->assertField('login_security_host_wrong_count', t('Host wrong count field exists.'));
     $this->assertField('login_security_host_wrong_count_hard', t('Host wrong hard count field exists.'));
