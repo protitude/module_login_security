@@ -225,7 +225,7 @@ function login_security_validate($form, &$form_state) {
 
   // login failed
   $messages = drupal_get_messages('error', FALSE);
-  $name = $form_state['values']['name'];
+  $name = check_plain($form_state['values']['name']);
 
   if (!empty($messages['error'])) {
     $failure_message = preg_grep("/<a href=\"\/user\/password\?name=$name\">Have you forgotten your password\?<\/a>/", $messages['error']);
