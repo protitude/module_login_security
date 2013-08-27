@@ -9,8 +9,8 @@
 
 
  /**
- * Build a form body for the configuration settings.
- */
+  * Build a form body for the configuration settings.
+  */
 function login_security_admin_settings() {
   $form = array();
 
@@ -182,7 +182,7 @@ function login_security_admin_settings() {
     '#description' => t('Enter the message to be sent to the administrator informing about supicious activity.'),
   );
 
-  //Clean event tracking list
+  // Clean event tracking list.
   $form['buttons']['login_security_clean_tracked_events'] = array(
     '#type' => 'submit',
     '#value' => t('Clear event tracking information'),
@@ -193,16 +193,16 @@ function login_security_admin_settings() {
   return system_settings_form($form);
 }
 
-/*
+/**
  * Verify that element is a positive integer value.
  */
 function _login_security_valid_integer($element, &$form_state) {
-  if (!ctype_alnum($element['#value']) || intval($element['#value']) < 0 ) {
+  if (!ctype_alnum($element['#value']) || intval($element['#value']) < 0) {
     form_error($element, t('The @field field should be a positive integer value greater than or equal to 0.', array('@field' => $element['#title'])));
   }
 }
 
-/*
+/**
  * Verify that element is a valid username.
  */
 function _login_security_valid_user($element, &$form_state) {
@@ -218,8 +218,8 @@ function _login_security_valid_user($element, &$form_state) {
   }
 }
 
-/*
- * Clean login_security_track table
+/**
+ * Clean login_security_track table.
  */
 function _login_security_clean_tracked_events($form, &$form_state) {
   drupal_set_message(t('Login Security event track list is now empty.'));
