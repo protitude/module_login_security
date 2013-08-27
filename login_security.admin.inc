@@ -67,7 +67,7 @@ function login_security_admin_settings() {
   $form['login_messages']['login_security_disable_core_login_error'] = array(
     '#type' => 'checkbox',
     '#title' => t('Disable login failure error message'),
-    '#description' => t('Checking this option login error messages will never be shown to the users. They will not be aware if the account exists, an invalid user name or password has been submitted or if the account is blocked. The core message "Sorry, unrecognized username or password. Have you forgotten your password?" is also hidden for the user.'),
+    '#description' => t('Checking this option prevents the display of login error messages. A user attempting to login will not be aware if the account exists, an invalid user name or password has been submitted, or if the account is blocked. The core messages "Sorry, unrecognized username or password. Have you forgotten your password?" and "The username {username} has not been activated or is blocked." are also hidden.'),
     '#default_value' => variable_get('login_security_disable_core_login_error', LOGIN_SECURITY_DISABLE_CORE_LOGIN_ERROR),
   );
   $form['login_messages']['login_security_notice_attempts_available'] = array(
