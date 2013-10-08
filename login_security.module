@@ -467,12 +467,12 @@ function login_security_mail($key, &$message, $variables) {
   switch ($key) {
     case 'block_user_notify':
       $message['subject'] = login_security_t(variable_get('login_security_user_blocked_email_subject', LOGIN_SECURITY_USER_BLOCKED_EMAIL_SUBJECT), $variables);
-      $message['body'] = login_security_t(variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
+      $message['body'][] = login_security_t(variable_get('login_security_user_blocked_email_body', LOGIN_SECURITY_USER_BLOCKED_EMAIL_BODY), $variables);
       break;
 
     case 'login_activity_notify':
       $message['subject'] = login_security_t(variable_get('login_security_login_activity_email_subject', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_SUBJECT), $variables);
-      $message['body'] = login_security_t(variable_get('login_security_login_activity_email_body', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY), $variables);
+      $message['body'][] = login_security_t(variable_get('login_security_login_activity_email_body', LOGIN_SECURITY_LOGIN_ACTIVITY_EMAIL_BODY), $variables);
       break;
   }
 }
