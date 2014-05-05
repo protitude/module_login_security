@@ -112,15 +112,16 @@ function login_security_set_login_timestamp($form, &$form_state) {
     ->condition('status', 1)
     ->execute()
     ->fetchAssoc();
+
+  // Save entry in security log, Username and IP Address.
+  _login_security_add_event($form_state['values']['name'], ip_address());
+
   if (empty($account)) {
     return;
   }
 
   _login_security_login_timestamp($account['login']);
   _login_security_access_timestamp($account['access']);
-
-  // Save entry in security log, Username and IP Address.
-  _login_security_add_event($form_state['values']['name'], ip_address());
 }
 
 /**
