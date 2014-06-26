@@ -3,4 +3,4 @@ description: 'Enable security options in the login flow of the site.'
 type: module
 version: 1.0
 core: 8.x
-configure: login_security.admin
+configure: login_security.settings

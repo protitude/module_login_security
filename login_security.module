@@ -1,1 +1,7 @@
 <?php
+
+/**
+ * @file
+ * Login Security module hooks.
+ */
+
