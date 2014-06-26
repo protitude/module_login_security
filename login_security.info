@@ -1,5 +1,0 @@
-name = Login Security
-description = Enable security options in the login flow of the site.
-files[] = login_security.test
-core = 7.x
-configure = admin/config/people/login_security
