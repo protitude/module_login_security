@@ -172,7 +172,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
     $form['login_security']['Notifications']['user_block_email']['user_blocked_email_subject'] = array(
       '#type' => 'textfield',
       '#title' => t('Email subject'),
-      '#default_value' => $config->get('track_time'),
+      '#default_value' => $config->get('user_blocked_email_subject'),
     );
     $form['login_security']['Notifications']['user_block_email']['user_blocked_email_body'] = array(
       '#type' => 'textarea',
@@ -255,7 +255,6 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
     ->set('last_login_timestamp', $form_state['values']['last_login_timestamp'])
     ->set('last_login_timestamp', $form_state['values']['last_login_timestamp'])
     ->set('last_access_timestamp', $form_state['values']['last_access_timestamp'])
-    ->set('user_blocked_email_user', $form_state['values']['user_blocked_email_user'])
     ->set('login_activity_email_user', $form_state['values']['login_activity_email_user'])
     ->set('notice_attempts_message', $form_state['values']['notice_attempts_message'])
     ->set('host_soft_banned', $form_state['values']['host_soft_banned'])

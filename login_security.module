@@ -162,7 +162,6 @@ function login_security_validate($form, &$form_state) {
 
   // Populate variables to be used in any module message or login operation.
   $variables = _login_security_get_variables_by_name($name);
-
   // First, check if administrator should be notified of unexpected login
   // activity.
   // Only process if configured threshold > 1.
@@ -178,7 +177,7 @@ function login_security_validate($form, &$form_state) {
         // Submit email only if required.
         $login_activity_email_user = $conf->get('login_activity_email_user');
         if ($login_activity_email_user !== '') {
-          $from = \Drupal::config('core.site_information')->get('site_name');
+          $from = \Drupal::config('system.site')->get('mail');
           $admin_mail = db_query_range("SELECT mail FROM {users} WHERE name = :name", 0, 1, array(':name' => $login_activity_email_user))->fetchField();
           $mail = drupal_mail('login_security', 'login_activity_notify', $admin_mail, language_default(), $variables, $from, TRUE);
         }
@@ -382,7 +381,7 @@ function login_user_block_user_name($variables, $form_state) {
       // Send admin email.
       $user_blocked_email_user = $conf->get('user_blocked_email_user');
       if ($user_blocked_email_user !== '') {
-        $from = \Drupal::config('core.site_information')->get('site_mail');
+        $from = \Drupal::config('system.site')->get('mail');
         $admin_mail = db_select('users', 'u')
         ->fields('u', array('mail'))
         ->condition('name', $user_blocked_email_user)
@@ -414,7 +413,7 @@ function _login_security_get_variables_by_name($name) {
     '@username' => $account->getUsername(),
     '@email' => $account->getEmail(),
     '@uid' => $account->uid->value,
-    '@site' => \Drupal::config('core.site_information')->get('site_name'),
+    '@site' => \Drupal::config('system.site')->get('name'),
     '@uri' => $base_url,
     '@edit_uri' => \Drupal::url('user.edit', array('user' => $account->uid->value), array('absolute' => TRUE)),
     '@hard_block_attempts' => $config->get('host_wrong_count_hard'),
@@ -470,15 +469,9 @@ function login_security_mail($key, &$message, $variables) {
 }
 
 /**
- * The performs drupal_placeholder() on variables in an array.
- *
- * This option is instead of doing t() because t() can only translate static
- * strings, not variables.
+ * Translate characters or replace substrings
  */
 function login_security_t($message, $variables = array()) {
-  foreach ($variables as $key => $value) {
-    $variables[$key] = drupal_placeholder($value);
-  }
   return strtr($message, $variables);
 }
 
