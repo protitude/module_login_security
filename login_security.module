@@ -2,9 +2,8 @@
 
 /**
  * @file
- * Login Security
+ * Login Security module hooks.
  *
- * Copyrighted by ilo@reversing.org
  * Thanks to christefano for the module tips and strings
  */
 
@@ -14,25 +13,6 @@
 function login_security_cron() {
   // Remove expired events.
   _login_security_remove_events();
-}
-
-/**
- * Implements hook_menu().
- */
-function login_security_menu() {
-  $items = array();
-
-  // Administer >> Site configuration >> Login Security settings.
-  $items['admin/config/people/login_security'] = array(
-    'title' => 'Login Security',
-    'description' => 'Configure security settings in the login form submission.',
-    'access arguments' => array('administer site configuration'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('login_security_admin_settings'),
-    'file' => 'login_security.admin.inc',
-  );
-
-  return $items;
 }
 
 /**
