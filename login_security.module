@@ -3,8 +3,6 @@
 /**
  * @file
  * Login Security module hooks.
- *
- * Thanks to christefano for the module tips and strings
  */
 
 /**
@@ -18,8 +16,9 @@ function login_security_cron() {
 /**
  * Implements hook_user_login().
  */
-function login_security_user_login(&$edit, $account) {
-  _login_security_remove_events($account->name, ip_address());
+function login_security_user_login($account) {
+  $ip_address = Drupal::request()->getClientIp();
+  _login_security_remove_events($account->getUsername(), $ip_address);
 }
 
 /**
