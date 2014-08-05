@@ -115,7 +115,7 @@ function login_security_soft_block_validate($form, &$form_state) {
   // Check for host login attempts: Soft.
   if ($variables['@soft_block_attempts'] >= 1) {
     if ($variables['@ip_current_count'] >= $variables['@soft_block_attempts']) {
-      form_set_error('submit', $form_state, login_security_t($config->get('host_soft_banned'), $variables));
+      \Drupal::formBuilder()->setErrorByName('submit', $form_state, login_security_t($config->get('host_soft_banned'), $variables));
     }
   }
 }
@@ -200,7 +200,7 @@ function login_security_validate($form, &$form_state) {
         // Resets the form error status so no form fields are highlighted in
         // red.
         $form_state['rebuild'] = TRUE;
-        form_clear_error();
+        \Drupal::formBuilder()->clearErrors($form_state);
 
         // Removes "Sorry, unrecognized username or password. Have you
         // forgotten your password?" and "The username $name has not been
@@ -328,8 +328,8 @@ function login_user_block_ip($variables, $form_state) {
   $block->ip = $variables['@ip'];
   drupal_write_record('blocked_ips', $block);
   watchdog('login_security', 'Banned IP address @ip due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('view/delete blocked IPs'), "admin/config/people/ip-blocking"));
-  // Using form_set_error because it may disrupt current form submission.
-  form_set_error('void', $form_state, login_security_t($conf->get('host_hard_banned'), $variables));
+  // Using \Drupal::formBuilder()->setErrorByName because it may disrupt current form submission.
+  \Drupal::formBuilder()->setErrorByName('void', $form_state, login_security_t($conf->get('host_hard_banned'), $variables));
 }
 
 /**
@@ -343,7 +343,7 @@ function login_user_block_user_name($variables, $form_state) {
     // Need to do firing the hook so user_notifications can be used.
     // db_query("UPDATE {users} SET status = 0 WHERE uid = %d", $uid);
     $uid = $variables['@uid'];
-    $account = user_load($uid);
+    $account = \Drupal\user\Entity\User::load($uid);
     // Block account if is active.
     if ($account->status->value == 1) {
       $account->status->set(0);
@@ -355,7 +355,7 @@ function login_user_block_user_name($variables, $form_state) {
       // user messages.
       watchdog('user', 'Blocked user @username due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit user'), "user/{$variables['@uid']}/edit", array('query' => array('destination' => 'admin/user/user'))));
       // Also notify the user that account has been blocked.
-      form_set_error('void', $form_state, login_security_t($conf->get('user_blocked'), $variables));
+      \Drupal::formBuilder()->setErrorByName('void', $form_state, login_security_t($conf->get('user_blocked'), $variables));
 
       // Send admin email.
       $user_blocked_email_user = $conf->get('user_blocked_email_user');
@@ -383,7 +383,7 @@ function _login_security_get_variables_by_name($name) {
   $account = user_load_by_name($name);
   // https://drupal.org/node/1744704
   if (empty($account)) {
-    $account = user_load(0);
+    $account = \Drupal\user\Entity\User::load(0);
   }
   $ipaddress = \Drupal::request()->getClientIp();
   $variables = array(
