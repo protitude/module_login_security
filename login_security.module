@@ -5,6 +5,8 @@
  * Login Security module hooks.
  */
 
+use Drupal\Core\Form\FormStateInterface;
+
 /**
  * Implements hook_cron().
 */
@@ -36,7 +38,7 @@ function login_security_user_update(&$edit, &$account, $category = NULL) {
 /**
  * Implements hook_form_alter().
  */
-function login_security_form_alter(&$form, &$form_state, $form_id) {
+function login_security_form_alter(array &$form, FormStateInterface  $form_state, $form_id) {
   if ($form_id == 'user_login_form') {
     // Put login_security first or the capture of the previous login
     // timestamp won't work and core's validation will update to the current
@@ -62,10 +64,10 @@ function login_security_form_alter(&$form, &$form_state, $form_id) {
  * since Drupal core validation updates the login timestamp, we have to set the
  * message before it gets updated with the current login instance.
  */
-function login_security_set_login_timestamp($form, &$form_state) {
-  $account = db_select('users', 'u')
+function login_security_set_login_timestamp(array $form, FormStateInterface $form_state) {
+  $account = db_select('users_field_data', 'u')
   ->fields('u', array('login', 'access'))
-  ->condition('name', $form_state['values']['name'])
+  ->condition('name', $form_state->getValue('name'))
   ->condition('status', 1)
   ->execute()
   ->fetchAssoc();
@@ -78,7 +80,7 @@ function login_security_set_login_timestamp($form, &$form_state) {
 
   // Save entry in security log, Username and IP Address.
   $ip_address = \Drupal::request()->getClientIp();
-  _login_security_add_event($form_state['values']['name'], $ip_address);
+  _login_security_add_event($form_state->getValue('name'), $ip_address);
 }
 
 /**
@@ -108,10 +110,10 @@ function _login_security_access_timestamp($access = NULL) {
  *
  * @url http://drupal.org/node/493164
  */
-function login_security_soft_block_validate($form, &$form_state) {
+function login_security_soft_block_validate(array $form, FormStateInterface $form_state) {
   $config = \Drupal::config('login_security.settings');
 
-  $variables = _login_security_get_variables_by_name($form_state['values']['name']);
+  $variables = _login_security_get_variables_by_name($form_state->getValue('name'));
   // Check for host login attempts: Soft.
   if ($variables['@soft_block_attempts'] >= 1) {
     if ($variables['@ip_current_count'] >= $variables['@soft_block_attempts']) {
@@ -126,11 +128,11 @@ function login_security_soft_block_validate($form, &$form_state) {
  * This functions does more than just validating, but it's main intention is to
  * break the login form flow.
  */
-function login_security_validate($form, &$form_state) {
+function login_security_validate(array $form, FormStateInterface $form_state) {
   $conf = \Drupal::config('login_security.settings');
 
   // Sanitize user input.
-  $name = $form_state['values']['name'];
+  $name = $form_state->getValue('name');
   // Null username should not be tracked.
   if (!strlen($name)) {
     return;
@@ -151,7 +153,7 @@ function login_security_validate($form, &$form_state) {
       // Check if admin has been already alerted.
       if (!$conf->get('threshold_notified')) {
         // Mark alert status as notified and send the email.
-        watchdog('login_security', 'Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently @tracking_current_count events are tracked, and threshold is configured for @activity_threshold attempts.', $variables, WATCHDOG_WARNING);
+        \Drupal::logger('login_security')->warning('Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently @tracking_current_count events are tracked, and threshold is configured for @activity_threshold attempts.', $variables);
         $conf->set('threshold_notified', TRUE);
         // Submit email only if required.
         $login_activity_email_user = $conf->get('login_activity_email_user');
@@ -164,7 +166,7 @@ function login_security_validate($form, &$form_state) {
     }
     elseif (($conf->get('threshold_notified')) && ($variables['@tracking_current_count'] < ($variables['@activity_threshold'] / 3))) {
       // Reset alert if currently tracked events is < threshold / 3.
-      watchdog('login_security', 'Suspicious activity in login form submissions is no longer detected: currently @tracking_current_count events are being tracked, and threshold is configured for @activity_threshold maximum allowed attempts).', $variables, WATCHDOG_NOTICE);
+      \Drupal::logger('login_security')->notice('Suspicious activity in login form submissions is no longer detected: currently @tracking_current_count events are being tracked, and threshold is configured for @activity_threshold maximum allowed attempts).', $variables);
       $conf->set('threshold_notified', FALSE);
     }
   }
@@ -200,7 +202,7 @@ function login_security_validate($form, &$form_state) {
         // Resets the form error status so no form fields are highlighted in
         // red.
         $form_state['rebuild'] = TRUE;
-        \Drupal::formBuilder()->clearErrors($form_state);
+        $form_state->clearErrors($form_state);
 
         // Removes "Sorry, unrecognized username or password. Have you
         // forgotten your password?" and "The username $name has not been
@@ -228,7 +230,7 @@ function login_security_validate($form, &$form_state) {
 /**
  * Implements hook_sumbit().
  */
-function login_security_submit($form, &$form_state) {
+function login_security_submit(array $form, FormStateInterface $form_state) {
   $user = \Drupal::currentUser();
   $conf = \Drupal::config('login_security.settings');
   // The submit handler shouldn't be called unless the authentication succeeded.
@@ -307,11 +309,13 @@ function _login_security_remove_all_events($time = NULL) {
 function _login_security_add_event($name, $ip) {
   // Each attempt is kept for future minning of advanced bruteforcing like
   // multiple IP or X-Forwarded-for usage and automated track data cleanup.
-  $event = new stdClass();
-  $event->host = $ip;
-  $event->name = $name;
-  $event->timestamp = REQUEST_TIME;
-  drupal_write_record('login_security_track', $event);
+  db_insert('login_security_track')
+    ->fields(array(
+      'host' => $ip,
+      'name' => $name,
+      'timestamp' => REQUEST_TIME,
+    ))
+    ->execute();
 }
 
 /**
@@ -319,23 +323,25 @@ function _login_security_add_event($name, $ip) {
  *
  * If IP address is not especified then block current IP.
  */
-function login_user_block_ip($variables, $form_state) {
+function login_user_block_ip($variables, FormStateInterface $form_state) {
   // There is no need to check if the host has been banned, we can't get here
   // twice.
   $conf = \Drupal::config('login_security.settings');
 
-  $block = new stdClass();
-  $block->ip = $variables['@ip'];
-  drupal_write_record('blocked_ips', $block);
-  watchdog('login_security', 'Banned IP address @ip due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('view/delete blocked IPs'), "admin/config/people/ip-blocking"));
+  $ip = $variables['@ip'];
+  \Drupal::database()->merge('blocked_ips')
+    ->key(array('ip' => $ip))
+    ->fields(array('ip' => $ip))
+    ->execute();
+  \Drupal::logger('login_security')->notice('Banned IP address @ip due to security configuration.', $variables);
   // Using \Drupal::formBuilder()->setErrorByName because it may disrupt current form submission.
-  \Drupal::formBuilder()->setErrorByName('void', $form_state, login_security_t($conf->get('host_hard_banned'), $variables));
+  $form_state->setErrorByName('void', $form_state, login_security_t($conf->get('host_hard_banned'), $variables));
 }
 
 /**
  * Block a user by user name. If no user id then block current user.
  */
-function login_user_block_user_name($variables, $form_state) {
+function login_user_block_user_name($variables, FormStateInterface $form_state) {
   $conf = \Drupal::config('login_security.settings');
   // If the user exists.
   if ($variables['@uid'] > 1) {
@@ -353,9 +359,9 @@ function login_user_block_user_name($variables, $form_state) {
       user_logout();
       // The watchdog alert is set to 'user' so it will show with other blocked
       // user messages.
-      watchdog('user', 'Blocked user @username due to security configuration.', $variables, WATCHDOG_NOTICE, l(t('edit user'), "user/{$variables['@uid']}/edit", array('query' => array('destination' => 'admin/user/user'))));
+      \Drupal::logger('login_security')->notice('Blocked user @username due to security configuration.', $variables);
       // Also notify the user that account has been blocked.
-      \Drupal::formBuilder()->setErrorByName('void', $form_state, login_security_t($conf->get('user_blocked'), $variables));
+      $form_state->setErrorByName('void', $form_state, login_security_t($conf->get('user_blocked'), $variables));
 
       // Send admin email.
       $user_blocked_email_user = $conf->get('user_blocked_email_user');
@@ -394,7 +400,7 @@ function _login_security_get_variables_by_name($name) {
     '@uid' => $account->uid->value,
     '@site' => \Drupal::config('system.site')->get('name'),
     '@uri' => $base_url,
-    '@edit_uri' => \Drupal::url('user.edit', array('user' => $account->uid->value), array('absolute' => TRUE)),
+    '@edit_uri' => \Drupal::url('entity.user.edit_form', array('user' => $account->uid->value), array('absolute' => TRUE)),
     '@hard_block_attempts' => $config->get('host_wrong_count_hard'),
     '@soft_block_attempts' => $config->get('host_wrong_count'),
     '@user_block_attempts' => $config->get('user_wrong_count'),

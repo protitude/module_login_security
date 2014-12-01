@@ -7,6 +7,7 @@
 
 namespace Drupal\login_security\Form;
 
+use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\ConfigFormBase;
 
 class LoginSecurityAdminSettings extends ConfigFormBase {
@@ -32,7 +33,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
    * @return array
    *   The form structure.
    */
-  public function buildForm(array $form, array &$form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state) {
     $config = $this->config('login_security.settings');
 
     $form['track_time'] = array(
@@ -213,16 +214,16 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
   /**
    * Verify that element is a positive integer value.
    */
-  public function validInteger($element, &$form_state) {
+  public function validInteger($element, FormStateInterface $form_state) {
     if (!ctype_alnum($element['#value']) || intval($element['#value']) < 0) {
-      \Drupal::formBuilder()->setError($element, $form_state, t('The @field field should be a positive integer value greater than or equal to 0.', array('@field' => $element['#title'])));
+      $form_state->setError($element, $form_state, t('The @field field should be a positive integer value greater than or equal to 0.', array('@field' => $element['#title'])));
     }
   }
 
   /**
    * Verify that element is a valid username.
    */
-  public function validUser($element, &$form_state) {
+  public function validUser($element, FormStateInterface $form_state) {
     if ($element['#value'] !== '') {
       $count = db_select('users', 'u')
       ->condition('name', $element['#value'])
@@ -230,7 +231,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
       ->execute()
       ->fetchField();
       if (intval($count) != 1) {
-        \Drupal::formBuilder()->setError($element, $form_state, t('The @field field should be a valid username.', array('@field' => $element['#title'])));
+        $form_state->setError($element, $form_state, t('The @field field should be a valid username.', array('@field' => $element['#title'])));
       }
     }
   }
@@ -243,27 +244,27 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
    * @param array $form_state
    *   An associative array containing the current state of the form.
    */
-  public function submitForm(array &$form, array &$form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $this->config('login_security.settings')
-    ->set('track_time', $form_state['values']['track_time'])
-    ->set('user_wrong_count', $form_state['values']['user_wrong_count'])
-    ->set('host_wrong_count', $form_state['values']['host_wrong_count'])
-    ->set('host_wrong_count_hard', $form_state['values']['host_wrong_count_hard'])
-    ->set('activity_threshold', $form_state['values']['activity_threshold'])
-    ->set('disable_core_login_error', $form_state['values']['disable_core_login_error'])
-    ->set('notice_attempts_available', $form_state['values']['notice_attempts_available'])
-    ->set('last_login_timestamp', $form_state['values']['last_login_timestamp'])
-    ->set('last_login_timestamp', $form_state['values']['last_login_timestamp'])
-    ->set('last_access_timestamp', $form_state['values']['last_access_timestamp'])
-    ->set('login_activity_email_user', $form_state['values']['login_activity_email_user'])
-    ->set('notice_attempts_message', $form_state['values']['notice_attempts_message'])
-    ->set('host_soft_banned', $form_state['values']['host_soft_banned'])
-    ->set('host_hard_banned', $form_state['values']['host_hard_banned'])
-    ->set('user_blocked', $form_state['values']['user_blocked'])
-    ->set('user_blocked_email_subject', $form_state['values']['user_blocked_email_subject'])
-    ->set('user_blocked_email_body', $form_state['values']['user_blocked_email_body'])
-    ->set('login_activity_email_subject', $form_state['values']['login_activity_email_subject'])
-    ->set('login_activity_email_body', $form_state['values']['login_activity_email_body'])
+    ->set('track_time', $form_state->getValue('track_time'))
+    ->set('user_wrong_count', $form_state->getValue('user_wrong_count'))
+    ->set('host_wrong_count', $form_state->getValue('host_wrong_count'))
+    ->set('host_wrong_count_hard', $form_state->getValue('host_wrong_count_hard'))
+    ->set('activity_threshold', $form_state->getValue('activity_threshold'))
+    ->set('disable_core_login_error', $form_state->getValue('disable_core_login_error'))
+    ->set('notice_attempts_available', $form_state->getValue('notice_attempts_available'))
+    ->set('last_login_timestamp', $form_state->getValue('last_login_timestamp'))
+    ->set('last_login_timestamp', $form_state->getValue('last_login_timestamp'))
+    ->set('last_access_timestamp', $form_state->getValue('last_access_timestamp'))
+    ->set('login_activity_email_user', $form_state->getValue('login_activity_email_user'))
+    ->set('notice_attempts_message', $form_state->getValue('notice_attempts_message'))
+    ->set('host_soft_banned', $form_state->getValue('host_soft_banned'))
+    ->set('host_hard_banned', $form_state->getValue('host_hard_banned'))
+    ->set('user_blocked', $form_state->getValue('user_blocked'))
+    ->set('user_blocked_email_subject', $form_state->getValue('user_blocked_email_subject'))
+    ->set('user_blocked_email_body', $form_state->getValue('user_blocked_email_body'))
+    ->set('login_activity_email_subject', $form_state->getValue('login_activity_email_subject'))
+    ->set('login_activity_email_body', $form_state->getValue('login_activity_email_body'))
     ->save();
 
     parent::submitForm($form, $form_state);
