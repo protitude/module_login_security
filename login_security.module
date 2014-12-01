@@ -117,7 +117,7 @@ function login_security_soft_block_validate(array $form, FormStateInterface $for
   // Check for host login attempts: Soft.
   if ($variables['@soft_block_attempts'] >= 1) {
     if ($variables['@ip_current_count'] >= $variables['@soft_block_attempts']) {
-      \Drupal::formBuilder()->setErrorByName('submit', $form_state, login_security_t($config->get('host_soft_banned'), $variables));
+      $form_state->setErrorByName('submit', login_security_t($config->get('host_soft_banned'), $variables));
     }
   }
 }
@@ -329,13 +329,12 @@ function login_user_block_ip($variables, FormStateInterface $form_state) {
   $conf = \Drupal::config('login_security.settings');
 
   $ip = $variables['@ip'];
-  \Drupal::database()->merge('blocked_ips')
+  \Drupal::database()->merge('ban_ip')
     ->key(array('ip' => $ip))
     ->fields(array('ip' => $ip))
     ->execute();
   \Drupal::logger('login_security')->notice('Banned IP address @ip due to security configuration.', $variables);
-  // Using \Drupal::formBuilder()->setErrorByName because it may disrupt current form submission.
-  $form_state->setErrorByName('void', $form_state, login_security_t($conf->get('host_hard_banned'), $variables));
+  $form_state->setErrorByName('void', login_security_t($conf->get('host_hard_banned'), $variables));
 }
 
 /**
@@ -361,7 +360,7 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
       // user messages.
       \Drupal::logger('login_security')->notice('Blocked user @username due to security configuration.', $variables);
       // Also notify the user that account has been blocked.
-      $form_state->setErrorByName('void', $form_state, login_security_t($conf->get('user_blocked'), $variables));
+      $form_state->setErrorByName('void', login_security_t($conf->get('user_blocked'), $variables));
 
       // Send admin email.
       $user_blocked_email_user = $conf->get('user_blocked_email_user');
