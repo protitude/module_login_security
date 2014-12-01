@@ -367,7 +367,7 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
       $user_blocked_email_user = $conf->get('user_blocked_email_user');
       if ($user_blocked_email_user !== '') {
         $from = \Drupal::config('system.site')->get('mail');
-        $admin_mail = db_select('users', 'u')
+        $admin_mail = db_select('users_field_data', 'u')
         ->fields('u', array('mail'))
         ->condition('name', $user_blocked_email_user)
         ->execute()

@@ -225,7 +225,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
    */
   public function validUser($element, FormStateInterface $form_state) {
     if ($element['#value'] !== '') {
-      $count = db_select('users', 'u')
+      $count = db_select('users_field_data', 'u')
       ->condition('name', $element['#value'])
       ->countQuery()
       ->execute()
@@ -257,6 +257,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
     ->set('last_login_timestamp', $form_state->getValue('last_login_timestamp'))
     ->set('last_access_timestamp', $form_state->getValue('last_access_timestamp'))
     ->set('login_activity_email_user', $form_state->getValue('login_activity_email_user'))
+    ->set('user_blocked_email_user', $form_state->getValue('user_blocked_email_user'))
     ->set('notice_attempts_message', $form_state->getValue('notice_attempts_message'))
     ->set('host_soft_banned', $form_state->getValue('host_soft_banned'))
     ->set('host_hard_banned', $form_state->getValue('host_hard_banned'))
