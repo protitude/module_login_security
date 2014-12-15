@@ -215,13 +215,30 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
       // Should the user be advised about the remaining login attempts?
       $notice_user = $conf->get('notice_attempts_available');
       if (($notice_user == TRUE) && ($variables['@user_block_attempts'] > 0) && $variables['@user_block_attempts'] >= $variables['@user_current_count']) {
+        $message_raw = $conf->get('notice_attempts_message');
+
+        // Simple flag that can be changed using hook_alter (see below).
+        $display_block_attempts = TRUE;
+
+        // Allow other module to change the flag, or even the message displayed,
+        // with a custom logic.
+        \Drupal::moduleHandler()->alter('login_security_display_block_attempts', $message_raw, $display_block_attempts, $variables['@user_current_count']);
+
+        $message = array(
+          'message' => $message_raw,
+          'variables' => $variables
+        );
+
         // This loop is used instead of doing t() because t() can only
         // translate static strings, not variables.
         // Ignoring Coder because $variables is sanitized by
         // login_security_t().
         // See https://drupal.org/node/1743996#comment-6421246.
         // @ignore security_2
-        drupal_set_message(login_security_t($conf->get('notice_attempts_message'), $variables), 'warning', TRUE);
+        $message = login_security_t($message['message'], $message['variables']);
+        if ($display_block_attempts) {
+          drupal_set_message($message, 'warning', TRUE);
+        }
       }
     }
   }
