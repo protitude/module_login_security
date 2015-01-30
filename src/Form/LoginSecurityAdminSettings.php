@@ -34,49 +34,49 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
    *   The form structure.
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = $this->config('login_security.settings');
+    $config = $this->configFactory()->getEditable('login_security.settings');
 
     $form['track_time'] = array(
-      '#type' => 'textfield',
+      '#type' => 'number',
+      '#min' => 0,
       '#title' => t('Track time'),
       '#default_value' => $config->get('track_time'),
-      '#element_validate' => array(array($this, 'validInteger')),
       '#size' => 3,
       '#description' => t('The time window to check for security violations: the time in hours the login information is kept to compute the login attempts count. A common example could be 24 hours. After that time, the attempt is deleted from the list, and will never be considered again.'),
       '#field_suffix' => t('Hours'),
     );
     $form['user_wrong_count'] = array(
-      '#type' => 'textfield',
+      '#type' => 'number',
+      '#min' => 0,
       '#title' => t('Maximum number of login failures before blocking a user'),
       '#default_value' => $config->get('user_wrong_count'),
-      '#element_validate' => array(array($this, 'validInteger')),
       '#size' => 3,
       '#description' => t('Enter the number of login failures a user is allowed. After this amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not disappear and should be removed manually from the <a href="!user">user management</a> interface.', array('!user' => '/admin/people')),
       '#field_suffix' => t('Failed attempts'),
     );
     $form['host_wrong_count'] = array(
-      '#type' => 'textfield',
+      '#type' => 'number',
+      '#min' => 0,
       '#title' => t('Maximum number of login failures before soft blocking a host'),
       '#default_value' => $config->get('host_wrong_count'),
-      '#element_validate' => array(array($this, 'validInteger')),
       '#size' => 3,
       '#description' => t('Enter the number of login failures a host is allowed. After this amount is reached, the host will not be able to submit the log in form again, but can still browse the site contents as an anonymous user. This protection is effective during the time indicated at tracking time option.'),
       '#field_suffix' => t('Failed attempts'),
     );
     $form['host_wrong_count_hard'] = array(
-      '#type' => 'textfield',
+      '#type' => 'number',
+      '#min' => 0,
       '#title' => t('Maximum number of login failures before blocking a host'),
       '#default_value' => $config->get('host_wrong_count_hard'),
-      '#element_validate' => array(array($this, 'validInteger')),
       '#size' => 3,
       '#description' => t('Enter the number of login failures a host is allowed. After this number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not disappear automatically and should be removed manually from the <a href="!access">access rules</a> administration interface.', array('!access' => '/admin/config/people/ip-blocking')),
       '#field_suffix' => t('Failed attempts'),
     );
     $form['activity_threshold'] = array(
-      '#type' => 'textfield',
+      '#type' => 'number',
+      '#min' => 0,
       '#title' => t('Maximum number of login failures before detecting an ongoing attack'),
       '#default_value' => $config->get('activity_threshold'),
-      '#element_validate' => array(array($this, 'validInteger')),
       '#size' => 3,
       '#description' => t('Enter the number of login failures before creating a warning log entry about this suspicious activity. If the number of invalid login events currently being tracked reach this number, and ongoing attack is detected.'),
       '#field_suffix' => t('Failed attempts'),
@@ -116,7 +116,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
       '#description' => t('No notification will be sent if the field is blank'),
       '#default_value' => $config->get('user_blocked_email_user'),
       '#autocomplete_route_name' => 'user.autocomplete',
-      '#element_validate' => array(array($this, 'validUser')),
+      '#element_validate' => array(array(get_class($this), 'validUser')),
     );
     $form['login_messages']['login_activity_email_user'] = array(
       '#type' => 'textfield',
@@ -124,7 +124,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
       '#description' => t('No notification will be sent if the field is blank'),
       '#default_value' => $config->get('login_activity_email_user'),
       '#autocomplete_route_name' => 'user.autocomplete',
-      '#element_validate' => array(array($this, 'validUser')),
+      '#element_validate' => array(array(get_class($this), 'validUser')),
     );
 
     $form['login_security']['Notifications'] = array(
@@ -210,20 +210,10 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
     return parent::buildForm($form, $form_state);
   }
 
-
-  /**
-   * Verify that element is a positive integer value.
-   */
-  public function validInteger($element, FormStateInterface $form_state) {
-    if (!ctype_alnum($element['#value']) || intval($element['#value']) < 0) {
-      $form_state->setError($element, $form_state, t('The @field field should be a positive integer value greater than or equal to 0.', array('@field' => $element['#title'])));
-    }
-  }
-
   /**
    * Verify that element is a valid username.
    */
-  public function validUser($element, FormStateInterface $form_state) {
+  public static function validUser($element, FormStateInterface $form_state) {
     if ($element['#value'] !== '') {
       $count = db_select('users_field_data', 'u')
       ->condition('name', $element['#value'])
@@ -245,7 +235,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
    *   An associative array containing the current state of the form.
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    $this->config('login_security.settings')
+    $this->configFactory()->getEditable('login_security.settings')
     ->set('track_time', $form_state->getValue('track_time'))
     ->set('user_wrong_count', $form_state->getValue('user_wrong_count'))
     ->set('host_wrong_count', $form_state->getValue('host_wrong_count'))
@@ -270,4 +260,12 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
 
     parent::submitForm($form, $form_state);
   }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getEditableConfigNames() {
+    return ['login_security.settings'];
+  }
+
 }
