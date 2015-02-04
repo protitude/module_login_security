@@ -6,6 +6,7 @@
  */
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\UserInterface;
 
 /**
  * Implements hook_cron().
@@ -18,20 +19,20 @@ function login_security_cron() {
 /**
  * Implements hook_user_login().
  */
-function login_security_user_login($account) {
+function login_security_user_login(UserInterface $account) {
   $ip_address = Drupal::request()->getClientIp();
   _login_security_remove_events($account->getUsername(), $ip_address);
 }
 
 /**
- * Implements hook_user_update().
+ * Implements hook_ENTITY_TYPE_update().
  */
-function login_security_user_update(&$edit, &$account, $category = NULL) {
+function login_security_user_update(UserInterface $account) {
   // The update case can be launched by the user or by any administrator.
   // On update, remove only the unser information tracked.
-  if ($account->status != 0) {
+  if ($account->isActive()) {
     // Don't remove tracking events if account is being blocked.
-    _login_security_remove_events($account->name);
+    _login_security_remove_events($account->getUsername());
   }
 }
 
