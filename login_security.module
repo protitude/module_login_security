@@ -161,7 +161,8 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
         if ($login_activity_email_user !== '') {
           $from = \Drupal::config('system.site')->get('mail');
           $admin_mail = db_query_range("SELECT mail FROM {users} WHERE name = :name", 0, 1, array(':name' => $login_activity_email_user))->fetchField();
-          $mail = drupal_mail('login_security', 'login_activity_notify', $admin_mail, language_default(), $variables, $from, TRUE);
+          $language = \Drupal::languageManager()->getDefaultLanguage();
+          \Drupal::service('plugin.manager.mail')->mail('login_security', 'login_activity_notify', $admin_mail, $language, $variables, $from, TRUE);
         }
       }
     }
@@ -369,7 +370,7 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
     $account = \Drupal\user\Entity\User::load($uid);
     // Block account if is active.
     if ($account->status->value == 1) {
-      $account->status->set(0);
+      $account->status->setValue(0);
       $account->save();
       //$account($account, array('status' => 0), NULL);
       // Remove user from site now.
@@ -389,7 +390,8 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
         ->condition('name', $user_blocked_email_user)
         ->execute()
         ->fetchField();
-        return drupal_mail('login_security', 'block_user_notify', $admin_mail, language_default(), $variables, $from, TRUE);
+        $language = \Drupal::languageManager()->getDefaultLanguage();
+        return \Drupal::service('plugin.manager.mail')->mail('login_security', 'block_user_notify', $admin_mail, $language, $variables, $from, TRUE);
       }
     }
   }

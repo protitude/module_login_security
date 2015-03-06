@@ -221,7 +221,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
       ->execute()
       ->fetchField();
       if (intval($count) != 1) {
-        $form_state->setError($element, $form_state, t('The @field field should be a valid username.', array('@field' => $element['#title'])));
+        $form_state->setError($element, t('The @field field should be a valid username.', array('@field' => $element['#title'])));
       }
     }
   }
