@@ -5,6 +5,7 @@
  * Login Security module hooks.
  */
 
+use Drupal\Component\Utility\String;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\user\UserInterface;
 
@@ -118,7 +119,7 @@ function login_security_soft_block_validate(array $form, FormStateInterface $for
   // Check for host login attempts: Soft.
   if ($variables['@soft_block_attempts'] >= 1) {
     if ($variables['@ip_current_count'] >= $variables['@soft_block_attempts']) {
-      $form_state->setErrorByName('submit', login_security_t($config->get('host_soft_banned'), $variables));
+      $form_state->setErrorByName('submit', String::format($config->get('host_soft_banned'), $variables));
     }
   }
 }
@@ -149,13 +150,14 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
   // Only process if configured threshold > 1.
   // see: http://drupal.org/node/583092.
   if ($variables['@activity_threshold']) {
+    $threshold = \Drupal::state()->get('login_security.threshold_notified', FALSE);
     // Check if threshold has been reached.
     if ($variables['@tracking_current_count'] > $variables['@activity_threshold']) {
       // Check if admin has been already alerted.
-      if (!$conf->get('threshold_notified')) {
+      if (!$threshold) {
         // Mark alert status as notified and send the email.
         \Drupal::logger('login_security')->warning('Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently @tracking_current_count events are tracked, and threshold is configured for @activity_threshold attempts.', $variables);
-        $conf->set('threshold_notified', TRUE);
+        \Drupal::state()->set('login_security.threshold_notified', TRUE);
         // Submit email only if required.
         $login_activity_email_user = $conf->get('login_activity_email_user');
         if ($login_activity_email_user !== '') {
@@ -166,10 +168,10 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
         }
       }
     }
-    elseif (($conf->get('threshold_notified')) && ($variables['@tracking_current_count'] < ($variables['@activity_threshold'] / 3))) {
+    elseif (\Drupal::state()->get('login_security.threshold_notified', FALSE) && ($variables['@tracking_current_count'] < ($variables['@activity_threshold'] / 3))) {
       // Reset alert if currently tracked events is < threshold / 3.
       \Drupal::logger('login_security')->notice('Suspicious activity in login form submissions is no longer detected: currently @tracking_current_count events are being tracked, and threshold is configured for @activity_threshold maximum allowed attempts).', $variables);
-      $conf->set('threshold_notified', FALSE);
+      \Drupal::state()->set('login_security.threshold_notified', TRUE);
     }
   }
 
@@ -203,7 +205,7 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
       if ($conf->get('disable_core_login_error')) {
         // Resets the form error status so no form fields are highlighted in
         // red.
-        $form_state['rebuild'] = TRUE;
+        $form_state->setRebuild();
         $form_state->clearErrors($form_state);
 
         // Removes "Sorry, unrecognized username or password. Have you
@@ -237,7 +239,7 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
         // login_security_t().
         // See https://drupal.org/node/1743996#comment-6421246.
         // @ignore security_2
-        $message = login_security_t($message['message'], $message['variables']);
+        $message = String::format($message['message'], $message['variables']);
         if ($display_block_attempts) {
           drupal_set_message($message, 'warning', TRUE);
         }
@@ -353,7 +355,7 @@ function login_user_block_ip($variables, FormStateInterface $form_state) {
     ->fields(array('ip' => $ip))
     ->execute();
   \Drupal::logger('login_security')->notice('Banned IP address @ip due to security configuration.', $variables);
-  $form_state->setErrorByName('void', login_security_t($conf->get('host_hard_banned'), $variables));
+  $form_state->setErrorByName('void', String::format($conf->get('host_hard_banned'), $variables));
 }
 
 /**
@@ -374,12 +376,14 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
       $account->save();
       //$account($account, array('status' => 0), NULL);
       // Remove user from site now.
-      user_logout();
+      if (\Drupal::currentUser()->isAuthenticated()) {
+        user_logout();
+      }
       // The watchdog alert is set to 'user' so it will show with other blocked
       // user messages.
       \Drupal::logger('login_security')->notice('Blocked user @username due to security configuration.', $variables);
       // Also notify the user that account has been blocked.
-      $form_state->setErrorByName('void', login_security_t($conf->get('user_blocked'), $variables));
+      $form_state->setErrorByName('void', String::format($conf->get('user_blocked'), $variables));
 
       // Send admin email.
       $user_blocked_email_user = $conf->get('user_blocked_email_user');
@@ -461,22 +465,15 @@ function login_security_mail($key, &$message, $variables) {
 
   switch ($key) {
     case 'block_user_notify':
-      $message['subject'] = login_security_t($conf->get('user_blocked_email_subject'), $variables);
-      $message['body'][] = login_security_t($conf->get('user_blocked_email_body'), $variables);
+      $message['subject'] = String::format($conf->get('user_blocked_email_subject'), $variables);
+      $message['body'][] = String::format($conf->get('user_blocked_email_body'), $variables);
       break;
 
     case 'login_activity_notify':
-      $message['subject'] = login_security_t($conf->get('login_activity_email_subject'), $variables);
-      $message['body'][] = login_security_t($conf->get('login_activity_email_body'), $variables);
+      $message['subject'] = String::format($conf->get('login_activity_email_subject'), $variables);
+      $message['body'][] = String::format($conf->get('login_activity_email_body'), $variables);
       break;
   }
-}
-
-/**
- * Translate characters or replace substrings
- */
-function login_security_t($message, $variables = array()) {
-  return strtr($message, $variables);
 }
 
 /**
@@ -493,8 +490,6 @@ function login_security_help($path, $arg = NULL) {
  * Implements hook_nagios().
  */
 function login_security_nagios() {
-  $conf = \Drupal::config('login_security.settings');
-
   $return = array(
     'key' => 'login_security',
   );
@@ -503,7 +498,7 @@ function login_security_nagios() {
   $variables = _login_security_get_variables_by_name('anonymous');
 
   // Check the threshold_notified flag for the module status.
-  $condition = $conf->get('threshold_notified');
+  $condition = \Drupal::state('login_security.threshold_notified', FALSE);
   if ($condition !== 'bogus') {
     // Attack is happening.
     if ($condition) {
