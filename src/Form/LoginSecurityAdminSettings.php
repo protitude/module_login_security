@@ -115,7 +115,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
       '#title' => t('Select who should get an email message when a user is blocked by this module'),
       '#description' => t('No notification will be sent if the field is blank'),
       '#default_value' => $config->get('user_blocked_email_user'),
-      '#autocomplete_route_name' => 'user.autocomplete',
+      '#autocomplete_path' => 'user/autocomplete',
       '#element_validate' => array(array(get_class($this), 'validUser')),
     );
     $form['login_messages']['login_activity_email_user'] = array(
@@ -123,7 +123,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
       '#title' => t('Select who should get an email message when an ongoing attack is detected'),
       '#description' => t('No notification will be sent if the field is blank'),
       '#default_value' => $config->get('login_activity_email_user'),
-      '#autocomplete_route_name' => 'user.autocomplete',
+      '#autocomplete_path' => 'user/autocomplete',
       '#element_validate' => array(array(get_class($this), 'validUser')),
     );
 
