@@ -1,20 +1,19 @@
 <?php
 /**
  * @file
- * Contains \Drupal\login_security\Tests\EmailTest.
+ * Contains \Drupal\login_security\Tests\LoginSecurityEmailTest.
  */
 
 namespace Drupal\login_security\Tests;
 
 use Drupal\Core\Form\FormState;
-use Drupal\simpletest\WebTestBase;
 
 /**
  * Test that emails are properly sent when configured.
  *
  * @group login_security
  */
-class EmailTest extends WebTestBase {
+class LoginSecurityEmailTest extends LoginSecurityTestBase {
 
   /**
    * {@inheritdoc}
@@ -35,7 +34,7 @@ class EmailTest extends WebTestBase {
     // Create some users.
     $this->admin = $this->drupalCreateUser();
     $this->account = $this->drupalCreateUser();
-    $this->drupalLogin($this->account);
+    $this->drupalLoginLite($this->account);
 
     // Setup emails to be sent.
     \Drupal::configFactory()->getEditable('login_security.settings')
@@ -48,9 +47,7 @@ class EmailTest extends WebTestBase {
    * Test that email is sent when users are blocked.
    */
   public function testBlockedEmail() {
-    $variables = [
-      '@uid' => $this->account->id()
-    ];
+    $variables = ['@uid' => $this->account->id()];
     $form_state = new FormState();
     login_user_block_user_name($variables, $form_state);
     $this->assertMail('to', $this->admin->getEmail(), 'Mail sent when a user is blocked.');
@@ -62,5 +59,4 @@ class EmailTest extends WebTestBase {
   public function testActivityThresholdEmail() {
     // @todo.
   }
-
 }
