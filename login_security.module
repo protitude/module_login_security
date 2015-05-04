@@ -5,7 +5,7 @@
  * Login Security module hooks.
  */
 
-use Drupal\Component\Utility\String;
+use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\user\UserInterface;
 
@@ -119,7 +119,7 @@ function login_security_soft_block_validate(array $form, FormStateInterface $for
   // Check for host login attempts: Soft.
   if ($variables['@soft_block_attempts'] >= 1) {
     if ($variables['@ip_current_count'] >= $variables['@soft_block_attempts']) {
-      $form_state->setErrorByName('submit', String::format($config->get('host_soft_banned'), $variables));
+      $form_state->setErrorByName('submit', SafeMarkup::format($config->get('host_soft_banned'), $variables));
     }
   }
 }
@@ -239,7 +239,7 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
         // login_security_t().
         // See https://drupal.org/node/1743996#comment-6421246.
         // @ignore security_2
-        $message = String::format($message['message'], $message['variables']);
+        $message = SafeMarkup::format($message['message'], $message['variables']);
         if ($display_block_attempts) {
           drupal_set_message($message, 'warning', TRUE);
         }
@@ -355,7 +355,7 @@ function login_user_block_ip($variables, FormStateInterface $form_state) {
     ->fields(array('ip' => $ip))
     ->execute();
   \Drupal::logger('login_security')->notice('Banned IP address @ip due to security configuration.', $variables);
-  $form_state->setErrorByName('void', String::format($conf->get('host_hard_banned'), $variables));
+  $form_state->setErrorByName('void', SafeMarkup::format($conf->get('host_hard_banned'), $variables));
 }
 
 /**
@@ -383,7 +383,7 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
       // user messages.
       \Drupal::logger('login_security')->notice('Blocked user @username due to security configuration.', $variables);
       // Also notify the user that account has been blocked.
-      $form_state->setErrorByName('void', String::format($conf->get('user_blocked'), $variables));
+      $form_state->setErrorByName('void', SafeMarkup::format($conf->get('user_blocked'), $variables));
 
       // Send admin email.
       $user_blocked_email_user = $conf->get('user_blocked_email_user');
@@ -465,13 +465,13 @@ function login_security_mail($key, &$message, $variables) {
 
   switch ($key) {
     case 'block_user_notify':
-      $message['subject'] = String::format($conf->get('user_blocked_email_subject'), $variables);
-      $message['body'][] = String::format($conf->get('user_blocked_email_body'), $variables);
+      $message['subject'] = SafeMarkup::format($conf->get('user_blocked_email_subject'), $variables);
+      $message['body'][] = SafeMarkup::format($conf->get('user_blocked_email_body'), $variables);
       break;
 
     case 'login_activity_notify':
-      $message['subject'] = String::format($conf->get('login_activity_email_subject'), $variables);
-      $message['body'][] = String::format($conf->get('login_activity_email_body'), $variables);
+      $message['subject'] = SafeMarkup::format($conf->get('login_activity_email_subject'), $variables);
+      $message['body'][] = SafeMarkup::format($conf->get('login_activity_email_body'), $variables);
       break;
   }
 }

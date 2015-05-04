@@ -6,7 +6,7 @@
 
 namespace Drupal\login_security\Tests;
 
-use Drupal\Component\Utility\String;
+use Drupal\Component\Utility\SafeMarkup;
 
 /**
  * Test Login Security's web interface.
@@ -41,7 +41,7 @@ class LoginSecurityInterfaceTest extends LoginSecurityTestBase {
 
     // Assert Fields.
     foreach ($settings_fields as $field_name) {
-      $this->assertField($field_name, String::format('@field_name field exists.', ['@field_name' => $field_name]));
+      $this->assertField($field_name, SafeMarkup::format('@field_name field exists.', ['@field_name' => $field_name]));
     }
   }
 }
