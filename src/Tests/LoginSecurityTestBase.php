@@ -11,7 +11,7 @@ use Drupal\simpletest\WebTestBase;
 /**
  * Helper test class with some added functions for testing.
  */
-class LoginSecurityTestBase extends WebTestBase {
+abstract class LoginSecurityTestBase extends WebTestBase {
   const ADMIN_SETTINGS_PATH = 'admin/config/people/login_security';
 
   /**
