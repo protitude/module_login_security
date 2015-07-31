@@ -5,8 +5,8 @@ host_wrong_count_hard: 0
 activity_threshold: 0
 disable_core_login_error: 0
 notice_attempts_available: 0
-last_login_timestamp: ''
-last_access_timestamp: ''
+last_login_timestamp: 0
+last_access_timestamp: 0
 user_blocked_email_user: ''
 login_activity_email_user: ''
 notice_attempts_message: 'You have used @user_current_count out of @user_block_attempts login attempts. After all @user_block_attempts have been used, you will be unable to login.'
