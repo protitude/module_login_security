@@ -20,8 +20,10 @@ abstract class LoginSecurityTestBase extends WebTestBase {
   public function setUp() {
     parent::setUp();
 
-    // Ensure the table has no entries.
-    db_query("TRUNCATE TABLE {login_security_track}; TRUNCATE TABLE {ban_ip}; TRUNCATE TABLE {flood}");
+    // Ensure these tables have no entries.
+    db_query("TRUNCATE TABLE {login_security_track}");
+    db_query("TRUNCATE TABLE {ban_ip}");
+    db_query("TRUNCATE TABLE {flood}");
 
     // Set time tracking window to 1 hour.
     \Drupal::configFactory()->getEditable('login_security.settings')
