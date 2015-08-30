@@ -205,7 +205,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
       '#type' => 'submit',
       '#value' => $this->t('Clear event tracking information'),
       '#weight' => 20,
-      '#submit' => array('_login_security_clean_tracked_events'),
+      '#submit' => array('::clean_tracked_events'),
     );
     return parent::buildForm($form, $form_state);
   }
@@ -259,6 +259,19 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
     ->save();
 
     parent::submitForm($form, $form_state);
+  }
+
+  /**
+   * Submit handler to clean the login_security_track table.
+   *
+   * @param array $form
+   *   An associative array containing the structure of the form.
+   * @param array $form_state
+   *   An associative array containing the current state of the form.
+   */
+  public function clean_tracked_events(array &$form, FormStateInterface $form_state) {
+    _login_security_remove_all_events();
+    drupal_set_message($this->t('Login Security event track list is now empty.'));
   }
 
   /**
