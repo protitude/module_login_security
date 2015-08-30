@@ -193,20 +193,16 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
 
   // At this point, they're either logged in or not by Drupal core's abuse of
   // the validation hook to login users completely.
-  global $user;
-
-  // Login failed.
-  $messages = drupal_get_messages('error', FALSE);
-
-  if (!empty($messages['error'])) {
-    $password_message = preg_grep("/<a href=\"\/user\/password\?name=$name\">Have you forgotten your password\?<\/a>/", $messages['error']);
-    $block_message = preg_grep("/The username <em class=\"placeholder\">$name<\/em> has not been activated or is blocked./", $messages['error']);
+  if ($form_state->hasAnyErrors()) {
+    $errors = $form_state->getErrors();
+    $password_message = preg_grep("/<a href=\"\/user\/password\?name=$name\">Have you forgotten your password\?<\/a>/", $errors);
+    $block_message = preg_grep("/The username <em class=\"placeholder\">$name<\/em> has not been activated or is blocked./", $errors);
     if (!count($password_message) || !count($block_message)) {
       if ($conf->get('disable_core_login_error')) {
         // Resets the form error status so no form fields are highlighted in
         // red.
         $form_state->setRebuild();
-        $form_state->clearErrors($form_state);
+        $form_state->clearErrors();
 
         // Removes "Sorry, unrecognized username or password. Have you
         // forgotten your password?" and "The username $name has not been
