@@ -34,7 +34,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
    *   The form structure.
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $config = $this->configFactory()->getEditable('login_security.settings');
+    $config = $this->config('login_security.settings');
 
     $form['track_time'] = array(
       '#type' => 'number',
@@ -221,7 +221,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
       ->execute()
       ->fetchField();
       if (intval($count) != 1) {
-        $form_state->setError($element, $this->t('The @field field should be a valid username.', array('@field' => $element['#title'])));
+        $form_state->setError($element, t('The @field field should be a valid username.', array('@field' => $element['#title'])));
       }
     }
   }
