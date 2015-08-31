@@ -303,13 +303,17 @@ function _login_security_remove_events($name = NULL, $host = NULL) {
  * @param int $time
  *   if specified, events up to this timestamp will be deleted. If not
  *   specified, all elements up to current timestamp will be deleted.
+ *
+ * @return int
+ *   The number of events deleted.
  */
 function _login_security_remove_all_events($time = NULL) {
   // Remove selected events.
   if (empty($time)) {
     $time = REQUEST_TIME;
   }
-  $result = db_delete('login_security_track')
+
+  return db_delete('login_security_track')
   ->condition('timestamp', $time, '<')
   ->execute();
 }

@@ -270,8 +270,8 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
    *   An associative array containing the current state of the form.
    */
   public function clean_tracked_events(array &$form, FormStateInterface $form_state) {
-    _login_security_remove_all_events();
-    drupal_set_message($this->t('Login Security event track list is now empty.'));
+    $count = _login_security_remove_all_events();
+    drupal_set_message($this->t('Login Security event track list is now empty. @count item(s) deleted.', array('@count' => $count)));
   }
 
   /**
