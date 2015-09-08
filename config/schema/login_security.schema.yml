@@ -1,5 +1,5 @@
 login_security.settings:
-  type: mapping
+  type: config_object
   label: 'Login security settings'
   mapping:
     track_time:
