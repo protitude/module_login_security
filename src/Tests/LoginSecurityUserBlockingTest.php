@@ -57,7 +57,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
    * Returns the default Drupal Login error message.
    */
   protected function getDefaultDrupalLoginErrorMessage() {
-    return 'Sorry, unrecognized username or password.';
+    return 'Unrecognized username or password.';
   }
 
   /**

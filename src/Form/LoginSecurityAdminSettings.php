@@ -88,7 +88,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
     $form['login_messages']['disable_core_login_error'] = array(
       '#type' => 'checkbox',
       '#title' => $this->t('Disable login failure error message'),
-      '#description' => $this->t('Checking this option prevents the display of login error messages. A user attempting to login will not be aware if the account exists, an invalid user name or password has been submitted, or if the account is blocked. The core messages "Sorry, unrecognized username or password. Have you forgotten your password?" and "The username {username} has not been activated or is blocked." are also hidden.'),
+      '#description' => $this->t('Checking this option prevents the display of login error messages. A user attempting to login will not be aware if the account exists, an invalid user name or password has been submitted, or if the account is blocked. The core messages "Unrecognized username or password. Have you forgotten your password?" and "The username {username} has not been activated or is blocked." are also hidden.'),
       '#default_value' => $config->get('disable_core_login_error'),
     );
     $form['login_messages']['notice_attempts_available'] = array(

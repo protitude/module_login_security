@@ -204,7 +204,7 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
         $form_state->setRebuild();
         $form_state->clearErrors();
 
-        // Removes "Sorry, unrecognized username or password. Have you
+        // Removes "Unrecognized username or password. Have you
         // forgotten your password?" and "The username $name has not been
         // activated or is blocked.", and any other errors that might be
         // helpful to an attacker it should not reset the attempts message
