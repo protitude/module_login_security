@@ -8,6 +8,7 @@
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\user\UserInterface;
+use Drupal\Core\Routing\RouteMatchInterface;
 
 /**
  * Implements hook_cron().
@@ -479,9 +480,9 @@ function login_security_mail($key, &$message, $variables) {
 /**
  * Implements hook_help().
  */
-function login_security_help($path, $arg = NULL) {
-  switch ($path) {
-    case 'admin/settings/login_security':
+function login_security_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.login_security':
       return '<p>' . t('Make sure you have reviewed the <a href="!README">README file</a> for further information about how all these settings will affect your Drupal login form submissions.', array('!README' => 'http://drupalcode.org/project/login_security.git/blob/refs/heads/6.x-1.x:/README.txt')) . '</p>';
   }
 }
