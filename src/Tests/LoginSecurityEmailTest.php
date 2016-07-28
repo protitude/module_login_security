@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\login_security\Tests\LoginSecurityEmailTest.
- */
 
 namespace Drupal\login_security\Tests;
 

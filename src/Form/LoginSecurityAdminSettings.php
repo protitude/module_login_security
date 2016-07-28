@@ -1,10 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\login_security\Form\LoginSecurityAdminSettings.
- */
-
 namespace Drupal\login_security\Form;
 
 use Drupal\Core\Form\FormStateInterface;
