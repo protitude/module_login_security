@@ -29,6 +29,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
    *   The form structure.
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
+    global $base_url;
     $config = $this->config('login_security.settings');
 
     $form['track_time'] = array(
@@ -46,7 +47,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
       '#title' => $this->t('Maximum number of login failures before blocking a user'),
       '#default_value' => $config->get('user_wrong_count'),
       '#size' => 3,
-      '#description' => $this->t('Enter the number of login failures a user is allowed. After this amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not disappear and should be removed manually from the <a href=":user">user management</a> interface.', array(':user' => '/admin/people')),
+      '#description' => $this->t('Enter the number of login failures a user is allowed. After this amount is reached, the user will be blocked, no matter the host attempting to log in. Use this option carefully on public sites, as an attacker may block your site users. The user blocking protection will not disappear and should be removed manually from the <a href=":user">user management</a> interface.', array(':user' => $base_url . '/admin/people')),
       '#field_suffix' => $this->t('Failed attempts'),
     );
     $form['host_wrong_count'] = array(
@@ -64,7 +65,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
       '#title' => $this->t('Maximum number of login failures before blocking a host'),
       '#default_value' => $config->get('host_wrong_count_hard'),
       '#size' => 3,
-      '#description' => $this->t('Enter the number of login failures a host is allowed. After this number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not disappear automatically and should be removed manually from the <a href=":access">access rules</a> administration interface.', array(':access' => '/admin/config/people/ip-blocking')),
+      '#description' => $this->t('Enter the number of login failures a host is allowed. After this number is reached, the host will be blocked, no matter the username attempting to log in. The host blocking protection will not disappear automatically and should be removed manually from the <a href=":access">access rules</a> administration interface.', array(':access' => $base_url . '/admin/config/people/ban')),
       '#field_suffix' => $this->t('Failed attempts'),
     );
     $form['activity_threshold'] = array(
