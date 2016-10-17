@@ -255,12 +255,12 @@ function login_security_submit(array $form, FormStateInterface $form_state) {
   if (is_object($user)) {
     $login = _login_security_login_timestamp();
     if ($conf->get('last_login_timestamp') && $login > 0) {
-      drupal_set_message(t('Your last login was @stamp.', array('@stamp' => format_date($login, 'large'))), 'status');
+      drupal_set_message(t('Your last login was @stamp.', array('@stamp' => format_date($login, 'long'))), 'status');
     }
 
     $access = _login_security_access_timestamp();
     if ($conf->get('last_access_timestamp') && $access > 0) {
-      drupal_set_message(t('Your last page access (site activity) was @stamp.', array('@stamp' => format_date($access, 'large'))), 'status');
+      drupal_set_message(t('Your last page access (site activity) was @stamp.', array('@stamp' => format_date($access, 'long'))), 'status');
     }
   }
 }
