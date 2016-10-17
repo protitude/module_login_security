@@ -211,7 +211,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
    */
   public static function validUser($element, FormStateInterface $form_state) {
     if ($element['#value'] !== '') {
-      $count = db_select('users_field_data', 'u')
+      $count = \Drupal::database()->select('users_field_data', 'u')
       ->condition('name', $element['#value'])
       ->countQuery()
       ->execute()

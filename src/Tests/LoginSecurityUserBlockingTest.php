@@ -112,7 +112,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
    * @return stdClass[]
    */
   protected function getLogMessages() {
-    return db_select('watchdog', 'w')
+    return \Drupal::database()->select('watchdog', 'w')
     ->fields('w', ['wid', 'message', 'variables', 'severity'])
     ->condition('w.type', 'login_security')
     ->execute()
