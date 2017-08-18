@@ -47,7 +47,7 @@ function login_security_form_alter(array &$form, FormStateInterface  $form_state
     // Put login_security first or the capture of the previous login
     // timestamp won't work and core's validation will update to the current
     // login instance before login_security can read the old timestamp.
-    $validate = array('login_security_soft_block_validate', 'login_security_set_login_timestamp');
+    $validate = ['login_security_soft_block_validate', 'login_security_set_login_timestamp'];
 
     if (isset($form['#validate']) && is_array($form['#validate'])) {
       $form['#validate'] = array_merge($validate, $form['#validate']);
@@ -70,7 +70,7 @@ function login_security_form_alter(array &$form, FormStateInterface  $form_state
  */
 function login_security_set_login_timestamp(array $form, FormStateInterface $form_state) {
   $account = \Drupal::database()->select('users_field_data', 'u')
-  ->fields('u', array('login', 'access'))
+  ->fields('u', ['login', 'access'])
   ->condition('name', $form_state->getValue('name'))
   ->condition('status', 1)
   ->execute()
@@ -164,7 +164,7 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
         $login_activity_email_user = $conf->get('login_activity_email_user');
         if ($login_activity_email_user !== '') {
           $from = \Drupal::config('system.site')->get('mail');
-          $admin_mail = db_query_range("SELECT mail FROM {users} WHERE name = :name", 0, 1, array(':name' => $login_activity_email_user))->fetchField();
+          $admin_mail = db_query_range("SELECT mail FROM {users} WHERE name = :name", 0, 1, [':name' => $login_activity_email_user])->fetchField();
           $language = \Drupal::languageManager()->getDefaultLanguage();
           \Drupal::service('plugin.manager.mail')->mail('login_security', 'login_activity_notify', $admin_mail, $language, $variables, $from, TRUE);
         }
@@ -226,10 +226,10 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
         // with a custom logic.
         \Drupal::moduleHandler()->alter('login_security_display_block_attempts', $message_raw, $display_block_attempts, $variables['@user_current_count']);
 
-        $message = array(
+        $message = [
           'message' => $message_raw,
           'variables' => $variables
-        );
+        ];
 
         // This loop is used instead of doing t() because t() can only
         // translate static strings, not variables.
@@ -256,12 +256,12 @@ function login_security_submit(array $form, FormStateInterface $form_state) {
   if (is_object($user)) {
     $login = _login_security_login_timestamp();
     if ($conf->get('last_login_timestamp') && $login > 0) {
-      drupal_set_message(t('Your last login was @stamp.', array('@stamp' => format_date($login, 'long'))), 'status');
+      drupal_set_message(t('Your last login was @stamp.', ['@stamp' => format_date($login, 'long')]), 'status');
     }
 
     $access = _login_security_access_timestamp();
     if ($conf->get('last_access_timestamp') && $access > 0) {
-      drupal_set_message(t('Your last page access (site activity) was @stamp.', array('@stamp' => format_date($access, 'long'))), 'status');
+      drupal_set_message(t('Your last page access (site activity) was @stamp.', ['@stamp' => format_date($access, 'long')]), 'status');
     }
   }
 }
@@ -333,11 +333,11 @@ function _login_security_add_event($name, $ip) {
   // Each attempt is kept for future minning of advanced bruteforcing like
   // multiple IP or X-Forwarded-for usage and automated track data cleanup.
   db_insert('login_security_track')
-    ->fields(array(
+    ->fields([
       'host' => $ip,
       'name' => $name,
       'timestamp' => REQUEST_TIME,
-    ))
+    ])
     ->execute();
 }
 
@@ -353,8 +353,8 @@ function login_user_block_ip($variables, FormStateInterface $form_state) {
 
   $ip = $variables['@ip'];
   \Drupal::database()->merge('ban_ip')
-    ->key(array('ip' => $ip))
-    ->fields(array('ip' => $ip))
+    ->key(['ip' => $ip])
+    ->fields(['ip' => $ip])
     ->execute();
   \Drupal::logger('login_security')->notice('Banned IP address @ip due to security configuration.', $variables);
   $form_state->setErrorByName('void', SafeMarkup::format($conf->get('host_hard_banned'), $variables));
@@ -376,7 +376,7 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
     if ($account->status->value == 1) {
       $account->status->setValue(0);
       $account->save();
-      //$account($account, array('status' => 0), NULL);
+      //$account($account, ['status' => 0], NULL);
       // Remove user from site now.
       if (\Drupal::currentUser()->isAuthenticated()) {
         user_logout();
@@ -392,7 +392,7 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
       if ($user_blocked_email_user !== '') {
         $from = \Drupal::config('system.site')->get('mail');
         $admin_mail = \Drupal::database()->select('users_field_data', 'u')
-        ->fields('u', array('mail'))
+        ->fields('u', ['mail'])
         ->condition('name', $user_blocked_email_user)
         ->execute()
         ->fetchField();
@@ -417,7 +417,7 @@ function _login_security_get_variables_by_name($name) {
     $account = \Drupal\user\Entity\User::load(0);
   }
   $ipaddress = \Drupal::request()->getClientIp();
-  $variables = array(
+  $variables = [
     '@date' => format_date(REQUEST_TIME),
     '@ip' => $ipaddress,
     '@username' => $account->getUsername(),
@@ -425,37 +425,37 @@ function _login_security_get_variables_by_name($name) {
     '@uid' => $account->uid->value,
     '@site' => \Drupal::config('system.site')->get('name'),
     '@uri' => $base_url,
-    '@edit_uri' => Url::fromRoute('entity.user.edit_form', array('user' => $account->uid->value), array('absolute' => TRUE))->toString(),
+    '@edit_uri' => Url::fromRoute('entity.user.edit_form', ['user' => $account->uid->value], ['absolute' => TRUE])->toString(),
     '@hard_block_attempts' => $config->get('host_wrong_count_hard'),
     '@soft_block_attempts' => $config->get('host_wrong_count'),
     '@user_block_attempts' => $config->get('user_wrong_count'),
     '@user_ip_current_count' => \Drupal::database()->select('login_security_track', 'lst')
-    ->fields('lst', array('id'))
+    ->fields('lst', ['id'])
     ->condition('name', $name)
     ->condition('host', $ipaddress)
     ->countQuery()
     ->execute()
     ->fetchField(),
     '@ip_current_count' => \Drupal::database()->select('login_security_track', 'lst')
-    ->fields('lst', array('id'))
+    ->fields('lst', ['id'])
     ->condition('host', $ipaddress)
     ->countQuery()
     ->execute()
     ->fetchField(),
     '@user_current_count' => \Drupal::database()->select('login_security_track', 'lst')
-    ->fields('lst', array('id'))
+    ->fields('lst', ['id'])
     ->condition('name', $name)
     ->countQuery()
     ->execute()
     ->fetchField(),
     '@tracking_time' => $config->get('track_time'),
     '@tracking_current_count' => \Drupal::database()->select('login_security_track', 'lst')
-    ->fields('lst', array('id'))
+    ->fields('lst', ['id'])
     ->countQuery()
     ->execute()
     ->fetchField(),
     '@activity_threshold' => $config->get('activity_threshold'),
-  );
+  ];
   return $variables;
 }
 
@@ -484,7 +484,7 @@ function login_security_mail($key, &$message, $variables) {
 function login_security_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
     case 'help.page.login_security':
-      return '<p>' . t('Make sure you have reviewed the <a href="!README">README file</a> for further information about how all these settings will affect your Drupal login form submissions.', array('!README' => 'http://drupalcode.org/project/login_security.git/blob/refs/heads/6.x-1.x:/README.txt')) . '</p>';
+      return '<p>' . t('Make sure you have reviewed the <a href="!README">README file</a> for further information about how all these settings will affect your Drupal login form submissions.', ['!README' => 'http://drupalcode.org/project/login_security.git/blob/refs/heads/6.x-1.x:/README.txt']) . '</p>';
   }
 }
 
@@ -492,9 +492,9 @@ function login_security_help($route_name, RouteMatchInterface $route_match) {
  * Implements hook_nagios().
  */
 function login_security_nagios() {
-  $return = array(
+  $return = [
     'key' => 'login_security',
-  );
+  ];
 
   // Get the token variables.
   $variables = _login_security_get_variables_by_name('anonymous');
@@ -520,11 +520,11 @@ function login_security_nagios() {
   }
 
   // Build the return data.
-  $return['login_security'] = array(
+  $return['login_security'] = [
     'status' => $status,
     'type' => 'state',
     'text' => $text,
-  );
+  ];
 
   return $return;
 }
