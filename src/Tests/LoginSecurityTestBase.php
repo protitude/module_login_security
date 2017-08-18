@@ -24,8 +24,8 @@ abstract class LoginSecurityTestBase extends WebTestBase {
 
     // Set time tracking window to 1 hour.
     \Drupal::configFactory()->getEditable('login_security.settings')
-    ->set('track_time', 1)
-    ->save();
+      ->set('track_time', 1)
+      ->save();
   }
 
   /**
@@ -56,8 +56,6 @@ abstract class LoginSecurityTestBase extends WebTestBase {
 
   /**
    * Alternative to drupalLogin().
-   *
-   * drupalLogin() has assertions that we know will fail.
    */
   protected function drupalLoginLite($user) {
     if ($this->drupalUserIsLoggedIn($user)) {
@@ -74,4 +72,5 @@ abstract class LoginSecurityTestBase extends WebTestBase {
 
     $this->loggedInUser = TRUE;
   }
+
 }

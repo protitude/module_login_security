@@ -7,13 +7,14 @@
 
 use Drupal\Component\Utility\SafeMarkup;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\user\UserInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
+use Drupal\user\Entity\User;
+use Drupal\user\UserInterface;
 
 /**
  * Implements hook_cron().
-*/
+ */
 function login_security_cron() {
   // Remove expired events.
   _login_security_remove_events();
@@ -42,7 +43,7 @@ function login_security_user_update(UserInterface $account) {
 /**
  * Implements hook_form_alter().
  */
-function login_security_form_alter(array &$form, FormStateInterface  $form_state, $form_id) {
+function login_security_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
   if ($form_id == 'user_login_form') {
     // Put login_security first or the capture of the previous login
     // timestamp won't work and core's validation will update to the current
@@ -70,11 +71,11 @@ function login_security_form_alter(array &$form, FormStateInterface  $form_state
  */
 function login_security_set_login_timestamp(array $form, FormStateInterface $form_state) {
   $account = \Drupal::database()->select('users_field_data', 'u')
-  ->fields('u', ['login', 'access'])
-  ->condition('name', $form_state->getValue('name'))
-  ->condition('status', 1)
-  ->execute()
-  ->fetchAssoc();
+    ->fields('u', ['login', 'access'])
+    ->condition('name', $form_state->getValue('name'))
+    ->condition('status', 1)
+    ->execute()
+    ->fetchAssoc();
   if (empty($account)) {
     return;
   }
@@ -228,7 +229,7 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
 
         $message = [
           'message' => $message_raw,
-          'variables' => $variables
+          'variables' => $variables,
         ];
 
         // This loop is used instead of doing t() because t() can only
@@ -271,25 +272,24 @@ function login_security_submit(array $form, FormStateInterface $form_state) {
  *
  * @param string $name
  *   If specified, events for this user name will be removed.
- *
  * @param string $host
  *   If specified, IP Address of the name-ip pair to be removed.
  */
 function _login_security_remove_events($name = NULL, $host = NULL) {
- $conf = \Drupal::config('login_security.settings');
+  $conf = \Drupal::config('login_security.settings');
 
   // Remove selected events.
   if (!empty($name)) {
     if (!empty($host)) {
       $result = db_delete('login_security_track')
-      ->condition('name', $name)
-      ->condition('host', $host)
-      ->execute();
+        ->condition('name', $name)
+        ->condition('host', $host)
+        ->execute();
     }
     else {
       $result = db_delete('login_security_track')
-      ->condition('name', $name)
-      ->execute();
+        ->condition('name', $name)
+        ->execute();
     }
   }
   else {
@@ -316,16 +316,15 @@ function _login_security_remove_all_events($time = NULL) {
   }
 
   return db_delete('login_security_track')
-  ->condition('timestamp', $time, '<')
-  ->execute();
+    ->condition('timestamp', $time, '<')
+    ->execute();
 }
 
 /**
  * Save the login attempt in the tracking database: user name nd ip address.
  *
  * @param string $name
- *   user name to be tracked.
- *
+ *   User name to be tracked.
  * @param string $ip
  *   IP Address of the pair.
  */
@@ -369,14 +368,12 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
   if ($variables['@uid'] > 1) {
     // Modifying the user table is not an option so it disables the user hooks.
     // Need to do firing the hook so user_notifications can be used.
-    // db_query("UPDATE {users} SET status = 0 WHERE uid = %d", $uid);
     $uid = $variables['@uid'];
-    $account = \Drupal\user\Entity\User::load($uid);
+    $account = User::load($uid);
     // Block account if is active.
     if ($account->status->value == 1) {
       $account->status->setValue(0);
       $account->save();
-      //$account($account, ['status' => 0], NULL);
       // Remove user from site now.
       if (\Drupal::currentUser()->isAuthenticated()) {
         user_logout();
@@ -392,17 +389,16 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
       if ($user_blocked_email_user !== '') {
         $from = \Drupal::config('system.site')->get('mail');
         $admin_mail = \Drupal::database()->select('users_field_data', 'u')
-        ->fields('u', ['mail'])
-        ->condition('name', $user_blocked_email_user)
-        ->execute()
-        ->fetchField();
+          ->fields('u', ['mail'])
+          ->condition('name', $user_blocked_email_user)
+          ->execute()
+          ->fetchField();
         $language = \Drupal::languageManager()->getDefaultLanguage();
         return \Drupal::service('plugin.manager.mail')->mail('login_security', 'block_user_notify', $admin_mail, $language, $variables, $from, TRUE);
       }
     }
   }
 }
-
 
 /**
  * Helper function to get the variable array for the messages.
@@ -414,7 +410,7 @@ function _login_security_get_variables_by_name($name) {
   $account = user_load_by_name($name);
   // https://drupal.org/node/1744704
   if (empty($account)) {
-    $account = \Drupal\user\Entity\User::load(0);
+    $account = User::load(0);
   }
   $ipaddress = \Drupal::request()->getClientIp();
   $variables = [
@@ -430,30 +426,30 @@ function _login_security_get_variables_by_name($name) {
     '@soft_block_attempts' => $config->get('host_wrong_count'),
     '@user_block_attempts' => $config->get('user_wrong_count'),
     '@user_ip_current_count' => \Drupal::database()->select('login_security_track', 'lst')
-    ->fields('lst', ['id'])
-    ->condition('name', $name)
-    ->condition('host', $ipaddress)
-    ->countQuery()
-    ->execute()
-    ->fetchField(),
+      ->fields('lst', ['id'])
+      ->condition('name', $name)
+      ->condition('host', $ipaddress)
+      ->countQuery()
+      ->execute()
+      ->fetchField(),
     '@ip_current_count' => \Drupal::database()->select('login_security_track', 'lst')
-    ->fields('lst', ['id'])
-    ->condition('host', $ipaddress)
-    ->countQuery()
-    ->execute()
-    ->fetchField(),
+      ->fields('lst', ['id'])
+      ->condition('host', $ipaddress)
+      ->countQuery()
+      ->execute()
+      ->fetchField(),
     '@user_current_count' => \Drupal::database()->select('login_security_track', 'lst')
-    ->fields('lst', ['id'])
-    ->condition('name', $name)
-    ->countQuery()
-    ->execute()
-    ->fetchField(),
+      ->fields('lst', ['id'])
+      ->condition('name', $name)
+      ->countQuery()
+      ->execute()
+      ->fetchField(),
     '@tracking_time' => $config->get('track_time'),
     '@tracking_current_count' => \Drupal::database()->select('login_security_track', 'lst')
-    ->fields('lst', ['id'])
-    ->countQuery()
-    ->execute()
-    ->fetchField(),
+      ->fields('lst', ['id'])
+      ->countQuery()
+      ->execute()
+      ->fetchField(),
     '@activity_threshold' => $config->get('activity_threshold'),
   ];
   return $variables;

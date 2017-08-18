@@ -40,4 +40,5 @@ class LoginSecurityInterfaceTest extends LoginSecurityTestBase {
       $this->assertField($field_name, SafeMarkup::format('@field_name field exists.', ['@field_name' => $field_name]));
     }
   }
+
 }

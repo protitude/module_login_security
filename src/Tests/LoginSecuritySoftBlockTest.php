@@ -21,7 +21,7 @@ class LoginSecuritySoftBlockTest extends LoginSecurityTestBase {
   protected function assertNoSoftBlocked($account) {
     $this->drupalLoginLite($account);
     $this->assertNoText('This host is not allowed to log in', 'Soft-blocked notice does not display.');
-    $this->assertNoText(SafeMarkup::format('The user @user_name has been blocked due to failed login attempts.', ['@user_name' => $account->getDisplayName()]), 'User is not blocked.');
+    $this->assertNoText(SafeMarkup::format('The user @user_name has been blocked due to failed login attempts.', ['@user_name' => $account->getUsername()]), 'User is not blocked.');
     $this->assertFieldByName('form_id', 'user_login_form', 'Login form found.');
   }
 
@@ -40,8 +40,8 @@ class LoginSecuritySoftBlockTest extends LoginSecurityTestBase {
   public function testLogin() {
     // Set wrong count to 5 attempts.
     \Drupal::configFactory()->getEditable('login_security.settings')
-    ->set('user_wrong_count', 5)
-    ->save();
+      ->set('user_wrong_count', 5)
+      ->save();
 
     $normal_user = $this->drupalCreateUser();
     $this->drupalLogin($normal_user);
@@ -93,4 +93,5 @@ class LoginSecuritySoftBlockTest extends LoginSecurityTestBase {
     $normal_user->setPassword($good_pass);
     $this->assertSoftBlocked($normal_user);
   }
+
 }

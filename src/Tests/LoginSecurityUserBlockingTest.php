@@ -17,6 +17,8 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
   public static $modules = ['user', 'login_security', 'dblog'];
 
   /**
+   * Bad users list.
+   *
    * @var \Drupal\user\UserInterface[]
    */
   protected $badUsers = [];
@@ -36,7 +38,6 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
    *
    * @param int $attempt
    *   The attempt count.
-   *
    * @param int $attempts_limit
    *   The attempts limit number.
    *
@@ -94,7 +95,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
   /**
    * Asserts a blocked user log was set.
    *
-   * @param stdClass $log
+   * @param object $log
    *   The raw log record from the database.
    * @param string $username
    *   The blocked username.
@@ -109,14 +110,15 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
   /**
    * Retrieve log records from the watchdog table.
    *
-   * @return stdClass[]
+   * @return array
+   *   The log messages.
    */
   protected function getLogMessages() {
     return \Drupal::database()->select('watchdog', 'w')
-    ->fields('w', ['wid', 'message', 'variables', 'severity'])
-    ->condition('w.type', 'login_security')
-    ->execute()
-    ->fetchAllAssoc('wid');
+      ->fields('w', ['wid', 'message', 'variables', 'severity'])
+      ->condition('w.type', 'login_security')
+      ->execute()
+      ->fetchAllAssoc('wid');
   }
 
   /**
@@ -125,17 +127,17 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
   public function testThresholdNotify() {
     // Set notify threshold to 5, and user locking to 5.
     \Drupal::configFactory()->getEditable('login_security.settings')
-    ->set('user_wrong_count', 5)
-    ->set('activity_threshold', 5)
-    ->save();
+      ->set('user_wrong_count', 5)
+      ->set('activity_threshold', 5)
+      ->save();
 
     // Attempt 10 bad logins. Since the user will be locked out after 5, only
     // a single log message should be set, and an attack should not be
     // detected.
     for ($i = 0; $i < 10; $i++) {
       $login = [
-      'name' => $this->badUsers[0]->getDisplayName(),
-      'pass' => 'bad_password_' . $i,
+        'name' => $this->badUsers[0]->getDisplayName(),
+        'pass' => 'bad_password_' . $i,
       ];
       $this->drupalPostForm('user', $login, t('Log in'));
     }
@@ -150,8 +152,8 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
     // Run failed logins as second user to trigger an attack warning.
     for ($i = 0; $i < 10; $i++) {
       $login = [
-      'name' => $this->badUsers[1]->getDisplayName(),
-      'pass' => 'bad_password_' . $i,
+        'name' => $this->badUsers[1]->getDisplayName(),
+        'pass' => 'bad_password_' . $i,
       ];
       $this->drupalPostForm('user', $login, t('Log in'));
     }
@@ -293,4 +295,5 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
     $this->assertTextLastLoginMessage();
     $this->assertTextLastPageAccess();
   }
+
 }

@@ -17,9 +17,18 @@ class LoginSecurityEmailTest extends LoginSecurityTestBase {
   public static $modules = ['user', 'login_security'];
 
   /**
+   * Test user.
+   *
    * @var \Drupal\user\UserInterface
    */
-  protected $account, $admin;
+  protected $account;
+
+  /**
+   * Test user.
+   *
+   * @var \Drupal\user\UserInterface
+   */
+  protected $admin;
 
   /**
    * {@inheritdoc}
@@ -55,4 +64,5 @@ class LoginSecurityEmailTest extends LoginSecurityTestBase {
   public function testActivityThresholdEmail() {
     // @todo.
   }
+
 }
