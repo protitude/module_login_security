@@ -21,7 +21,7 @@ class LoginSecuritySoftBlockTest extends LoginSecurityTestBase {
   protected function assertNoSoftBlocked($account) {
     $this->drupalLoginLite($account);
     $this->assertNoText('This host is not allowed to log in', 'Soft-blocked notice does not display.');
-    $this->assertNoText(SafeMarkup::format('The user @user_name has been blocked due to failed login attempts.', ['@user_name' => $account->getUsername()]), 'User is not blocked.');
+    $this->assertNoText(SafeMarkup::format('The user @user_name has been blocked due to failed login attempts.', ['@user_name' => $account->getDisplayName()]), 'User is not blocked.');
     $this->assertFieldByName('form_id', 'user_login_form', 'Login form found.');
   }
 

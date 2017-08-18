@@ -34,8 +34,8 @@ class LoginSecurityEmailTest extends LoginSecurityTestBase {
 
     // Setup emails to be sent.
     \Drupal::configFactory()->getEditable('login_security.settings')
-      ->set('user_blocked_email_user', $this->admin->getUsername())
-      ->set('login_activity_email_user', $this->admin->getUsername())
+      ->set('user_blocked_email_user', $this->admin->getDisplayName())
+      ->set('login_activity_email_user', $this->admin->getDisplayName())
       ->save();
   }
 

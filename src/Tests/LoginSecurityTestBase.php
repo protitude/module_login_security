@@ -65,7 +65,7 @@ abstract class LoginSecurityTestBase extends WebTestBase {
     }
 
     $edit = [
-      'name' => $user->getUsername(),
+      'name' => $user->getDisplayName(),
       'pass' => $user->getPassword(),
     ];
 

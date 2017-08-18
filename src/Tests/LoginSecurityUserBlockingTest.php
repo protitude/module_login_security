@@ -134,7 +134,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
     // detected.
     for ($i = 0; $i < 10; $i++) {
       $login = [
-      'name' => $this->badUsers[0]->getUsername(),
+      'name' => $this->badUsers[0]->getDisplayName(),
       'pass' => 'bad_password_' . $i,
       ];
       $this->drupalPostForm('user', $login, t('Log in'));
@@ -144,13 +144,13 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
     $logs = $this->getLogMessages();
     $this->assertEqual(count($logs), 1, '1 event was logged.');
     $log = array_pop($logs);
-    $this->assertBlockedUser($log, $this->badUsers[0]->getUsername());
+    $this->assertBlockedUser($log, $this->badUsers[0]->getDisplayName());
     db_truncate('watchdog')->execute();
 
     // Run failed logins as second user to trigger an attack warning.
     for ($i = 0; $i < 10; $i++) {
       $login = [
-      'name' => $this->badUsers[1]->getUsername(),
+      'name' => $this->badUsers[1]->getDisplayName(),
       'pass' => 'bad_password_' . $i,
       ];
       $this->drupalPostForm('user', $login, t('Log in'));
@@ -171,7 +171,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
 
     // Second log should be a blocked user.
     $log = array_shift($logs);
-    $this->assertBlockedUser($log, $this->badUsers[1]->getUsername());
+    $this->assertBlockedUser($log, $this->badUsers[1]->getDisplayName());
   }
 
   /**
@@ -237,7 +237,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
     $normal_user->status->setValue(0);
     $normal_user->save();
     $this->drupalLoginLite($normal_user);
-    $this->assertRaw($this->getDefaultDrupalBlockedUserErrorMessage($normal_user->getUsername()), 'Drupal "...has not been activated or is blocked." login error message found.');
+    $this->assertRaw($this->getDefaultDrupalBlockedUserErrorMessage($normal_user->getDisplayName()), 'Drupal "...has not been activated or is blocked." login error message found.');
 
     $config->set('disable_core_login_error', 1)->save();
 
@@ -251,7 +251,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
     $normal_user->status->setValue(0);
     $normal_user->save();
     $this->drupalLoginLite($normal_user);
-    $this->assertNoRaw($this->getDefaultDrupalBlockedUserErrorMessage($normal_user->getUsername()), 'Drupal "...has not been activated or is blocked." login error message NOT found.');
+    $this->assertNoRaw($this->getDefaultDrupalBlockedUserErrorMessage($normal_user->getDisplayName()), 'Drupal "...has not been activated or is blocked." login error message NOT found.');
   }
 
   /**
