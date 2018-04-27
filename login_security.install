@@ -57,18 +57,12 @@ function login_security_update_8001() {
     ->getEditable('login_security.settings');
 
   // Get user email for user block notification.
-  $user_blocked_admin_email = \Drupal::database()->select('users_field_data', 'u')
-    ->fields('u', ['mail'])
-    ->condition('name', $config->get('user_blocked_email_user'))
-    ->execute()
-    ->fetchField();
+  $user_blocked_admin_user = user_load_by_name($config->get('user_blocked_email_user'));
+  $user_blocked_admin_email = $user_blocked_admin_user ? $user_blocked_admin_user->getEmail() : '';
 
   // Get user email for login activity notification.
-  $login_activity_admin_email = \Drupal::database()->select('users_field_data', 'u')
-    ->fields('u', ['mail'])
-    ->condition('name', $config->get('login_activity_email_user'))
-    ->execute()
-    ->fetchField();
+  $login_activity_admin_user = user_load_by_name($config->get('login_activity_email_user'));
+  $login_activity_admin_email = $login_activity_admin_user ? $login_activity_admin_user->getEmail(): '';
 
   // Save new config.
   $config
