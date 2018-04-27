@@ -161,13 +161,12 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
         // Mark alert status as notified and send the email.
         \Drupal::logger('login_security')->warning('Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently @tracking_current_count events are tracked, and threshold is configured for @activity_threshold attempts.', $variables);
         \Drupal::state()->set('login_security.threshold_notified', TRUE);
-        // Submit email only if required.
-        $login_activity_email_user = $conf->get('login_activity_email_user');
-        if ($login_activity_email_user !== '') {
+        // Send notification only if required.
+        $email_to = $conf->get('login_activity_notification_emails');
+        if ($email_to !== '') {
           $from = \Drupal::config('system.site')->get('mail');
-          $admin_mail = db_query_range("SELECT mail FROM {users} WHERE name = :name", 0, 1, [':name' => $login_activity_email_user])->fetchField();
           $language = \Drupal::languageManager()->getDefaultLanguage();
-          \Drupal::service('plugin.manager.mail')->mail('login_security', 'login_activity_notify', $admin_mail, $language, $variables, $from, TRUE);
+          \Drupal::service('plugin.manager.mail')->mail('login_security', 'login_activity_notify', $email_to, $language, $variables, $from, TRUE);
         }
       }
     }
@@ -384,17 +383,12 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
       // Also notify the user that account has been blocked.
       $form_state->setErrorByName('void', SafeMarkup::format($conf->get('user_blocked'), $variables));
 
-      // Send admin email.
-      $user_blocked_email_user = $conf->get('user_blocked_email_user');
-      if ($user_blocked_email_user !== '') {
+      // Send notification.
+      $to = $conf->get('user_blocked_notification_emails');
+      if ($to !== '') {
         $from = \Drupal::config('system.site')->get('mail');
-        $admin_mail = \Drupal::database()->select('users_field_data', 'u')
-          ->fields('u', ['mail'])
-          ->condition('name', $user_blocked_email_user)
-          ->execute()
-          ->fetchField();
         $language = \Drupal::languageManager()->getDefaultLanguage();
-        return \Drupal::service('plugin.manager.mail')->mail('login_security', 'block_user_notify', $admin_mail, $language, $variables, $from, TRUE);
+        return \Drupal::service('plugin.manager.mail')->mail('login_security', 'block_user_notify', $to, $language, $variables, $from, TRUE);
       }
     }
   }
