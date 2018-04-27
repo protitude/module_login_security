@@ -29,7 +29,12 @@ class LoginSecurityEmailTest extends LoginSecurityTestBase {
   public function setUp() {
     parent::setUp();
 
+    // Create first user.
+    $this->drupalCreateUser();
+
+    // Create second user.
     $this->account = $this->drupalCreateUser();
+
     $this->drupalLoginLite($this->account);
 
     // Setup emails to be sent.
