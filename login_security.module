@@ -25,7 +25,7 @@ function login_security_cron() {
  */
 function login_security_user_login(UserInterface $account) {
   $ip_address = Drupal::request()->getClientIp();
-  _login_security_remove_events($account->getDisplayName(), $ip_address);
+  _login_security_remove_events($account->getAccountName(), $ip_address);
 }
 
 /**
@@ -36,7 +36,7 @@ function login_security_user_update(UserInterface $account) {
   // On update, remove only the user information tracked.
   if ($account->isActive()) {
     // Don't remove tracking events if account is being blocked.
-    _login_security_remove_events($account->getDisplayName());
+    _login_security_remove_events($account->getAccountName());
   }
 }
 
@@ -410,7 +410,7 @@ function _login_security_get_variables_by_name($name) {
   $variables = [
     '@date' => format_date(REQUEST_TIME),
     '@ip' => $ipaddress,
-    '@username' => $account->getDisplayName(),
+    '@username' => $account->getAccountName(),
     '@email' => $account->getEmail(),
     '@uid' => $account->uid->value,
     '@site' => \Drupal::config('system.site')->get('name'),
