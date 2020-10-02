@@ -44,15 +44,9 @@ login_security.settings:
     user_blocked_email_subject:
       type: string
       label: 'Email subject'
-    user_blocked_email_subject:
-      type: string
-      label: 'Email subject'
     user_blocked_email_body:
       type: string
       label: 'Email body'
-    user_blocked_email_subject:
-      type: string
-      label: 'Email subject '
     login_activity_email_subject:
       type: string
       label: 'Email subject'

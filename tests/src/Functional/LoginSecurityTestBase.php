@@ -1,16 +1,28 @@
 <?php
 
-namespace Drupal\login_security\Tests;
+namespace Drupal\Tests\login_security\Functional;
 
-use Drupal\simpletest\WebTestBase;
+use Drupal\Tests\BrowserTestBase;
 
 /**
  * Helper test class with some added functions for testing.
  */
-abstract class LoginSecurityTestBase extends WebTestBase {
+abstract class LoginSecurityTestBase extends BrowserTestBase {
+
   const ADMIN_SETTINGS_PATH = 'admin/config/people/login_security';
 
+  /**
+   * Modules needed for testing purposes.
+   *
+   * @var array
+   *   Array of modules to enable for testing purposes.
+   */
   public static $modules = ['login_security'];
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
 
   /**
    * {@inheritdoc}
@@ -19,8 +31,8 @@ abstract class LoginSecurityTestBase extends WebTestBase {
     parent::setUp();
 
     // Ensure these tables have no entries.
-    db_query("TRUNCATE TABLE {login_security_track}");
-    db_query("TRUNCATE TABLE {ban_ip}");
+    \Drupal::database()->query('TRUNCATE TABLE {login_security_track}');
+    \Drupal::database()->query('TRUNCATE TABLE {ban_ip}');
 
     // Set time tracking window to 1 hour.
     \Drupal::configFactory()->getEditable('login_security.settings')
@@ -67,8 +79,8 @@ abstract class LoginSecurityTestBase extends WebTestBase {
       'pass' => $user->getPassword(),
     ];
 
-    $this->drupalPostForm('user', $edit, t('Log in'));
-    $this->assertResponse(200, t('Login page reloaded.'));
+    $this->drupalPostForm('user', $edit, $this->t('Log in'));
+    $this->assertResponse(200, $this->t('Login page reloaded.'));
 
     $this->loggedInUser = TRUE;
   }

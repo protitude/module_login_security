@@ -185,7 +185,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
     $form['notification']['tokens'] = [
       '#type' => 'item',
       '#title' => $this->t('Tokens'),
-      '#description' => t("<ul><li>%date: The (formatted) date and time of the event.</li><li>%ip: The IP address tracked for this event.</li><li>%username: The username entered in the login form (sanitized).</li><li>%email: If the user exists, this will be the email address.</li><li>%uid: If the user exists, this will be the user uid.</li><li>%site: The name of the site as configured in the administration.</li><li>%uri: The base url of this Drupal site.</li><li>%edit_uri: Direct link to the user (based on the name entered) edit page.</li><li>%hard_block_attempts: Configured maximum attempts before hard blocking the IP address.</li><li>%soft_block_attempts: Configured maximum attempts before soft blocking the IP address.</li><li>%user_block_attempts: Configured maximum login attempts before blocking the user.</li><li>%user_ip_current_count: The total attempts for this user name tracked from this IP address.</li><li>%ip_current_count: The total login attempts tracked from from this IP address.</li><li>%user_current_count: The total login attempts tracked for this user name .</li><li>%tracking_time: The tracking time value: in hours.</li><li>%tracking_current_count: Total tracked events</li><li>%activity_threshold: Value of attempts to detect ongoing attack.</li></ul>"),
+      '#description' => $this->t("<ul><li>%date: The (formatted) date and time of the event.</li><li>%ip: The IP address tracked for this event.</li><li>%username: The username entered in the login form (sanitized).</li><li>%email: If the user exists, this will be the email address.</li><li>%uid: If the user exists, this will be the user uid.</li><li>%site: The name of the site as configured in the administration.</li><li>%uri: The base url of this Drupal site.</li><li>%edit_uri: Direct link to the user (based on the name entered) edit page.</li><li>%hard_block_attempts: Configured maximum attempts before hard blocking the IP address.</li><li>%soft_block_attempts: Configured maximum attempts before soft blocking the IP address.</li><li>%user_block_attempts: Configured maximum login attempts before blocking the user.</li><li>%user_ip_current_count: The total attempts for this user name tracked from this IP address.</li><li>%ip_current_count: The total login attempts tracked from from this IP address.</li><li>%user_current_count: The total login attempts tracked for this user name .</li><li>%tracking_time: The tracking time value: in hours.</li><li>%tracking_current_count: Total tracked events</li><li>%activity_threshold: Value of attempts to detect ongoing attack.</li></ul>"),
     ];
 
     // Clean event tracking list.
@@ -238,7 +238,7 @@ class LoginSecurityAdminSettings extends ConfigFormBase {
    */
   public function cleanTrackedEvents(array &$form, FormStateInterface $form_state) {
     $count = _login_security_remove_all_events();
-    drupal_set_message($this->t('Login Security event track list is now empty. @count item(s) deleted.', ['@count' => $count]));
+    $this->messenger()->addMessage($this->t('Login Security event track list is now empty. @count item(s) deleted.', ['@count' => $count]));
   }
 
   /**

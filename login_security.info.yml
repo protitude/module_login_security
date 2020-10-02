@@ -2,6 +2,7 @@ name: Login Security
 description: 'Enable security options in the login flow of the site.'
 type: module
 core: 8.x
+core_version_requirement: ^8 || ^9
 configure: login_security.settings
 
 dependencies:

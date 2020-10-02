@@ -1,9 +1,11 @@
 <?php
 
-namespace Drupal\login_security\Tests;
+namespace Drupal\Tests\login_security\Functional;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Logger\RfcLogLevel;
+use Drupal\Core\Database\Database;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Test Login Security's user-blocking restrictions and default messages.
@@ -11,6 +13,9 @@ use Drupal\Core\Logger\RfcLogLevel;
  * @group login_security
  */
 class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
+
+  use StringTranslationTrait;
+
   /**
    * {@inheritdoc}
    */
@@ -47,7 +52,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
   protected function getAttemptsAvailableMessage($attempt, $attempts_limit) {
     $variables = ['@attempt' => $attempt, '@login_attempts_limit' => $attempts_limit];
 
-    return SafeMarkup::format('You have used @attempt out of @login_attempts_limit login attempts. After all @login_attempts_limit have been used, you will be unable to login.', $variables);
+    return new FormattableMarkup('You have used @attempt out of @login_attempts_limit login attempts. After all @login_attempts_limit have been used, you will be unable to login.', $variables);
   }
 
   /**
@@ -61,7 +66,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
    * Returns the default Drupal Blocked User error message.
    */
   protected function getDefaultDrupalBlockedUserErrorMessage($user_name) {
-    return SafeMarkup::format('The username %name has not been activated or is blocked.', ['%name' => $user_name]);
+    return new FormattableMarkup('The username %name has not been activated or is blocked.', ['%name' => $user_name]);
   }
 
   /**
@@ -102,8 +107,8 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
    */
   protected function assertBlockedUser($log, $username) {
     $variables = ['@username' => $username];
-    $expected = SafeMarkup::format('Blocked user @username due to security configuration.', $variables);
-    $this->assertEqual(SafeMarkup::format($log->message, unserialize($log->variables)), $expected, 'User blocked log was set.');
+    $expected = new FormattableMarkup('Blocked user @username due to security configuration.', $variables);
+    $this->assertEqual(new FormattableMarkup($log->message, unserialize($log->variables)), $expected, 'User blocked log was set.');
     $this->assertEqual($log->severity, RfcLogLevel::NOTICE, 'User blocked log was of severity "Notice".');
   }
 
@@ -139,7 +144,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
         'name' => $this->badUsers[0]->getAccountName(),
         'pass' => 'bad_password_' . $i,
       ];
-      $this->drupalPostForm('user', $login, t('Log in'));
+      $this->drupalPostForm('user', $login, $this->t('Log in'));
     }
 
     // Ensure a log message has been set.
@@ -147,7 +152,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
     $this->assertEqual(count($logs), 1, '1 event was logged.');
     $log = array_pop($logs);
     $this->assertBlockedUser($log, $this->badUsers[0]->getAccountName());
-    db_truncate('watchdog')->execute();
+    Database::getConnection()->truncate('watchdog')->execute();
 
     // Run failed logins as second user to trigger an attack warning.
     for ($i = 0; $i < 10; $i++) {
@@ -155,7 +160,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
         'name' => $this->badUsers[1]->getAccountName(),
         'pass' => 'bad_password_' . $i,
       ];
-      $this->drupalPostForm('user', $login, t('Log in'));
+      $this->drupalPostForm('user', $login, $this->t('Log in'));
     }
 
     $logs = $this->getLogMessages();
@@ -167,8 +172,8 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
     // threshold.
     $log = array_shift($logs);
     $variables = ['@activity_threshold' => 5, '@tracking_current_count' => 6];
-    $expected = SafeMarkup::format('Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently @tracking_current_count events are tracked, and threshold is configured for @activity_threshold attempts.', $variables);
-    $this->assertEqual(SafeMarkup::format($log->message, unserialize($log->variables)), $expected);
+    $expected = new FormattableMarkup('Ongoing attack detected: Suspicious activity detected in login form submissions. Too many invalid login attempts threshold reached: currently @tracking_current_count events are tracked, and threshold is configured for @activity_threshold attempts.', $variables);
+    $this->assertEqual(new FormattableMarkup($log->message, unserialize($log->variables)), $expected);
     $this->assertEqual($log->severity, RfcLogLevel::WARNING, 'The logged alert was of severity "Warning".');
 
     // Second log should be a blocked user.
@@ -214,7 +219,7 @@ class LoginSecurityUserBlockingTest extends LoginSecurityTestBase {
     $this->assertFieldByName('form_id', 'user_login_form', 'Login form found.');
 
     // Turns back on the warning message we looked for in the previous assert.
-    $this->assertText(SafeMarkup::format('The user @user_name has been blocked due to failed login attempts.', ['@user_name' => $normal_user->getUsername()]), 'Blocked message displayed.');
+    $this->assertText(new FormattableMarkup('The user @user_name has been blocked due to failed login attempts.', ['@user_name' => $normal_user->getAccountName()]), 'Blocked message displayed.');
     $this->assertFieldByName('form_id', 'user_login_form', 'Login form found.');
   }
 

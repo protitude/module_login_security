@@ -1,8 +1,10 @@
 <?php
 
-namespace Drupal\login_security\Tests;
+namespace Drupal\Tests\login_security\Functional;
 
 use Drupal\Core\Form\FormState;
+use Drupal\Core\Test\AssertMailTrait;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Test that emails are properly sent when configured.
@@ -10,6 +12,8 @@ use Drupal\Core\Form\FormState;
  * @group login_security
  */
 class LoginSecurityEmailTest extends LoginSecurityTestBase {
+  use AssertMailTrait;
+  use StringTranslationTrait;
 
   /**
    * {@inheritdoc}

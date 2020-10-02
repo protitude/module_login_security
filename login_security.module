@@ -5,7 +5,7 @@
  * Login Security module hooks.
  */
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\Url;
@@ -122,7 +122,7 @@ function login_security_soft_block_validate(array $form, FormStateInterface $for
   // Check for host login attempts: Soft.
   if ($variables['@soft_block_attempts'] >= 1) {
     if ($variables['@ip_current_count'] >= $variables['@soft_block_attempts']) {
-      $form_state->setErrorByName('submit', SafeMarkup::format($config->get('host_soft_banned'), $variables));
+      $form_state->setErrorByName('submit', new FormattableMarkup($config->get('host_soft_banned'), $variables));
     }
   }
 }
@@ -211,7 +211,7 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
         // activated or is blocked.", and any other errors that might be
         // helpful to an attacker it should not reset the attempts message
         // because it is a warning, not an error.
-        drupal_get_messages('error', TRUE);
+        \Drupal::messenger()->messagesByType('error', TRUE);
       }
 
       // Should the user be advised about the remaining login attempts?
@@ -237,9 +237,9 @@ function login_security_validate(array $form, FormStateInterface $form_state) {
         // login_security_t().
         // See https://drupal.org/node/1743996#comment-6421246.
         // @ignore security_2
-        $message = SafeMarkup::format($message['message'], $message['variables']);
+        $message = new FormattableMarkup($message['message'], $message['variables']);
         if ($display_block_attempts) {
-          drupal_set_message($message, 'warning', TRUE);
+          \Drupal::messenger()->addWarning($message, TRUE);
         }
       }
     }
@@ -256,12 +256,12 @@ function login_security_submit(array $form, FormStateInterface $form_state) {
   if (is_object($user)) {
     $login = _login_security_login_timestamp();
     if ($conf->get('last_login_timestamp') && $login > 0) {
-      drupal_set_message(t('Your last login was @stamp.', ['@stamp' => format_date($login, 'long')]), 'status');
+      \Drupal::messenger()->addMessage(t('Your last login was @stamp.', ['@stamp' => \Drupal::service('date.formatter')->format($login, 'long')]), 'status');
     }
 
     $access = _login_security_access_timestamp();
     if ($conf->get('last_access_timestamp') && $access > 0) {
-      drupal_set_message(t('Your last page access (site activity) was @stamp.', ['@stamp' => format_date($access, 'long')]), 'status');
+      \Drupal::messenger()->addMessage(t('Your last page access (site activity) was @stamp.', ['@stamp' => \Drupal::service('date.formatter')->format($access, 'long')]), 'status');
     }
   }
 }
@@ -280,20 +280,21 @@ function _login_security_remove_events($name = NULL, $host = NULL) {
   // Remove selected events.
   if (!empty($name)) {
     if (!empty($host)) {
-      db_delete('login_security_track')
+      \Drupal::database()->delete('login_security_track')
         ->condition('name', $name)
         ->condition('host', $host)
         ->execute();
     }
     else {
-      db_delete('login_security_track')
+      \Drupal::database()->delete('login_security_track')
         ->condition('name', $name)
         ->execute();
     }
   }
   else {
+    $request_time = \Drupal::time()->getRequestTime();
     // Calculate protection time window and remove expired events.
-    $time = REQUEST_TIME - ($conf->get('track_time') * 3600);
+    $time = $request_time - ($conf->get('track_time') * 3600);
     _login_security_remove_all_events($time);
   }
 }
@@ -311,10 +312,10 @@ function _login_security_remove_events($name = NULL, $host = NULL) {
 function _login_security_remove_all_events($time = NULL) {
   // Remove selected events.
   if (empty($time)) {
-    $time = REQUEST_TIME;
+    $time = \Drupal::time()->getRequestTime();
   }
 
-  return db_delete('login_security_track')
+  return \Drupal::database()->delete('login_security_track')
     ->condition('timestamp', $time, '<')
     ->execute();
 }
@@ -330,11 +331,11 @@ function _login_security_remove_all_events($time = NULL) {
 function _login_security_add_event($name, $ip) {
   // Each attempt is kept for future mining of advanced brute forcing like
   // multiple IP or X-Forwarded-for usage and automated track data cleanup.
-  db_insert('login_security_track')
+  \Drupal::database()->insert('login_security_track')
     ->fields([
       'host' => $ip,
       'name' => $name,
-      'timestamp' => REQUEST_TIME,
+      'timestamp' => \Drupal::time()->getRequestTime(),
     ])
     ->execute();
 }
@@ -355,7 +356,7 @@ function login_user_block_ip($variables, FormStateInterface $form_state) {
     ->fields(['ip' => $ip])
     ->execute();
   \Drupal::logger('login_security')->notice('Banned IP address @ip due to security configuration.', $variables);
-  $form_state->setErrorByName('void', SafeMarkup::format($conf->get('host_hard_banned'), $variables));
+  $form_state->setErrorByName('void', new FormattableMarkup($conf->get('host_hard_banned'), $variables));
 }
 
 /**
@@ -381,7 +382,7 @@ function login_user_block_user_name($variables, FormStateInterface $form_state) 
       // user messages.
       \Drupal::logger('login_security')->notice('Blocked user @username due to security configuration.', $variables);
       // Also notify the user that account has been blocked.
-      $form_state->setErrorByName('void', SafeMarkup::format($conf->get('user_blocked'), $variables));
+      $form_state->setErrorByName('void', new FormattableMarkup($conf->get('user_blocked'), $variables));
 
       // Send notification.
       $to = $conf->get('user_blocked_notification_emails');
@@ -407,8 +408,9 @@ function _login_security_get_variables_by_name($name) {
     $account = User::load(0);
   }
   $ipaddress = \Drupal::request()->getClientIp();
+  $request_time = \Drupal::time()->getRequestTime();
   $variables = [
-    '@date' => format_date(REQUEST_TIME),
+    '@date' => \Drupal::service('date.formatter')->format($request_time),
     '@ip' => $ipaddress,
     '@username' => $account->getAccountName(),
     '@email' => $account->getEmail(),
@@ -457,13 +459,13 @@ function login_security_mail($key, &$message, $variables) {
 
   switch ($key) {
     case 'block_user_notify':
-      $message['subject'] = SafeMarkup::format($conf->get('user_blocked_email_subject'), $variables);
-      $message['body'][] = SafeMarkup::format($conf->get('user_blocked_email_body'), $variables);
+      $message['subject'] = new FormattableMarkup($conf->get('user_blocked_email_subject'), $variables);
+      $message['body'][] = new FormattableMarkup($conf->get('user_blocked_email_body'), $variables);
       break;
 
     case 'login_activity_notify':
-      $message['subject'] = SafeMarkup::format($conf->get('login_activity_email_subject'), $variables);
-      $message['body'][] = SafeMarkup::format($conf->get('login_activity_email_body'), $variables);
+      $message['subject'] = new FormattableMarkup($conf->get('login_activity_email_subject'), $variables);
+      $message['body'][] = new FormattableMarkup($conf->get('login_activity_email_body'), $variables);
       break;
   }
 }

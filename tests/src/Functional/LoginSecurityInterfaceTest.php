@@ -1,8 +1,8 @@
 <?php
 
-namespace Drupal\login_security\Tests;
+namespace Drupal\Tests\login_security\Functional;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
 
 /**
  * Test Login Security's web interface.
@@ -37,7 +37,7 @@ class LoginSecurityInterfaceTest extends LoginSecurityTestBase {
 
     // Assert Fields.
     foreach ($settings_fields as $field_name) {
-      $this->assertField($field_name, SafeMarkup::format('@field_name field exists.', ['@field_name' => $field_name]));
+      $this->assertField($field_name, new FormattableMarkup('@field_name field exists.', ['@field_name' => $field_name]));
     }
   }
 

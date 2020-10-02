@@ -1,8 +1,9 @@
 <?php
 
-namespace Drupal\login_security\Tests;
+namespace Drupal\Tests\login_security\Functional;
 
-use Drupal\Component\Utility\SafeMarkup;
+use Drupal\Component\Render\FormattableMarkup;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Test Login Security's soft blocking restrictions.
@@ -10,6 +11,9 @@ use Drupal\Component\Utility\SafeMarkup;
  * @group login_security
  */
 class LoginSecuritySoftBlockTest extends LoginSecurityTestBase {
+
+  use StringTranslationTrait;
+
   /**
    * {@inheritdoc}
    */
@@ -21,7 +25,7 @@ class LoginSecuritySoftBlockTest extends LoginSecurityTestBase {
   protected function assertNoSoftBlocked($account) {
     $this->drupalLoginLite($account);
     $this->assertNoText('This host is not allowed to log in', 'Soft-blocked notice does not display.');
-    $this->assertNoText(SafeMarkup::format('The user @user_name has been blocked due to failed login attempts.', ['@user_name' => $account->getUsername()]), 'User is not blocked.');
+    $this->assertNoText(new FormattableMarkup('The user @user_name has been blocked due to failed login attempts.', ['@user_name' => $account->getAccountName()]), 'User is not blocked.');
     $this->assertFieldByName('form_id', 'user_login_form', 'Login form found.');
   }
 
@@ -68,8 +72,6 @@ class LoginSecuritySoftBlockTest extends LoginSecurityTestBase {
     // Intentionally break the password to repeat invalid logins.
     $new_pass = user_password();
     $normal_user->setPassword($new_pass);
-
-    $site_name = \Drupal::config('system.site')->get('name');
 
     // First try.
     $this->assertNoSoftBlocked($normal_user);
